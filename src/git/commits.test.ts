@@ -2,16 +2,8 @@ import { describe, it, expect } from "vitest";
 
 import { parseLog, US, RS } from "./commits.js";
 
-/**
- * Fixtures imitando o `git log --numstat --pretty=format:LOG_FORMAT`.
- *
- * Cada commit é um BLOCO que começa com RS (0x1E), tem o cabeçalho na
- * primeira linha (campos separados por US), e abaixo uma linha por arquivo
- * no formato numstat: `<adicionadas>\t<removidas>\t<caminho>`.
- * Entre um commit e o próximo, o git põe uma linha em branco.
- *
- * Arquivo BINÁRIO (ex.: imagem): o numstat mostra "-" em vez de número.
- */
+// Fixtures imitando `git log --numstat`: cada commit começa com RS, cabeçalho
+// na 1ª linha, uma linha numstat por arquivo abaixo.
 const c1 =
   `${RS}hashAAA${US}Ana Lima${US}ana@exemplo.com${US}2026-01-02T10:00:00-03:00${US}fix: corrige login\n` +
   `10\t2\tsrc/auth.ts\n` +
