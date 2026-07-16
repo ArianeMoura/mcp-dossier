@@ -25,7 +25,9 @@ export function runGit(repoPath: string, args: string[]): Promise<string> {
         resolve(stdout);
       } else {
         reject(
-          new Error(`git ${args.join(" ")} falhou (código ${code}): ${stderr.trim()}`),
+          new Error(
+            `git ${args.join(" ")} falhou (código ${code}): ${stderr.trim()}`,
+          ),
         );
       }
     });
@@ -45,7 +47,9 @@ export async function readCommits(repoPath: string): Promise<Commit[]> {
   } catch (err) {
     // Repo sem commits faz o `git log` falhar. Confirmamos o caso à prova de
     // idioma: rev-list --count responde "0" e sai com sucesso num repo vazio.
-    const count = (await runGit(repoPath, ["rev-list", "--all", "--count"])).trim();
+    const count = (
+      await runGit(repoPath, ["rev-list", "--all", "--count"])
+    ).trim();
     if (count === "0") return [];
     throw err;
   }

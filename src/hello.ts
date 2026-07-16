@@ -6,4 +6,3 @@ export function formatHello(cwd: string, now: Date): string {
 
   return `mcp-dossier vivo em ${folderName} (${cwd}) às ${timestamp}`;
 }
-

@@ -52,7 +52,11 @@ describe("parseLog", () => {
     const c = parseLog(raw)[0];
     expect(c.files).toHaveLength(2);
     expect(c.files[0]).toEqual({ path: "src/auth.ts", added: 10, removed: 2 });
-    expect(c.files[1]).toEqual({ path: "src/auth.test.ts", added: 5, removed: 0 });
+    expect(c.files[1]).toEqual({
+      path: "src/auth.test.ts",
+      added: 5,
+      removed: 0,
+    });
   });
 
   it("trata arquivo binário (numstat '-') como 0 linhas", () => {
