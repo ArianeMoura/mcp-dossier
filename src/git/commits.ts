@@ -9,9 +9,19 @@
 export const US = "\x1f"; // Unit Separator (0x1F): separa CAMPOS dentro de um commit
 export const RS = "\x1e"; // Record Separator (0x1E): separa um COMMIT do outro
 
-// A string que runGit passa pro git. A ordem dos campos aqui dita a ordem
-// em que parseLog vai lê-los.
-export const LOG_FORMAT = "%H%x1f%an%x1f%ae%x1f%aI%x1f%s%x1e";
+// A string que runGit passa pro git, JUNTO com --numstat. Repare que o RS
+// (%x1e) agora vai no COMEÇO: ele marca "aqui começa um commit". Assim,
+// quebrar a saída no RS devolve blocos auto-contidos — o cabeçalho + as
+// linhas de arquivo daquele commit, grudadas. A ordem dos campos aqui dita
+// a ordem em que parseLog vai lê-los.
+export const LOG_FORMAT = "%x1e%H%x1f%an%x1f%ae%x1f%aI%x1f%s";
+
+// Um arquivo tocado por um commit, com o churn (linhas +/-) do --numstat.
+export type FileChange = {
+  path: string; // caminho do arquivo, relativo à raiz do repo
+  added: number; // linhas adicionadas (0 para arquivo binário)
+  removed: number; // linhas removidas (0 para arquivo binário)
+};
 
 export type Commit = {
   hash: string; // %H  — identidade única do commit
@@ -19,6 +29,7 @@ export type Commit = {
   email: string; // %ae — email; a identidade ESTÁVEL da pessoa
   date: Date; // %aI — data do autor, já convertida para Date
   subject: string; // %s  — a primeira linha da mensagem
+  files: FileChange[]; // os arquivos que este commit mexeu (via --numstat)
 };
 
 /**
@@ -28,20 +39,36 @@ export type Commit = {
  * @param raw  o texto cru vindo do git
  * @returns    um Commit por registro, na ordem em que o git os emitiu
  */
+
 export function parseLog(raw: string): Commit[] {
   return raw
-  .split(RS)
-  .map((part) => part.trim())
-  .filter(Boolean)
-  .map((part) => {
-    const fields = part.split(US);
+    .split(RS)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => {
+      const lines = part
+        .split("\n")
+        .filter(Boolean);
 
-    return {
-      hash: fields[0],
-      author: fields[1],
-      email: fields[2],
-      date: new Date(fields[3]),
-      subject: fields[4],
-    };
-  });
+      const fields = lines[0].split(US);
+
+      const files = lines.slice(1).map((line) => {
+        const [added, removed, path] = line.split("\t");
+
+        return {
+          path,
+          added: Number(added) || 0,
+          removed: Number(removed) || 0,
+        };
+      });
+
+      return {
+        hash: fields[0],
+        author: fields[1],
+        email: fields[2],
+        date: new Date(fields[3]),
+        subject: fields[4],
+        files,
+      };
+    });
 }

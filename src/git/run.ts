@@ -64,7 +64,11 @@ export function runGit(repoPath: string, args: string[]): Promise<string> {
  */
 export async function readCommits(repoPath: string): Promise<Commit[]> {
   try {
-    const raw = await runGit(repoPath, ["log", "--pretty=format:" + LOG_FORMAT]);
+    const raw = await runGit(repoPath, [
+      "log",
+      "--numstat",
+      "--pretty=format:" + LOG_FORMAT,
+    ]);
     return parseLog(raw);
   } catch (err) {
     // Um repositório recém-criado (git init, sem nenhum commit) faz o
