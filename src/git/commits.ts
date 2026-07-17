@@ -1,5 +1,3 @@
-// Camada 1: parse puro do `git log`. Recebe string, devolve objetos — sem I/O.
-
 // Delimitadores de controle: não aparecem em nome, email nem mensagem, então
 // nunca viram separador falso. US separa campos; RS separa commits.
 export const US = "\x1f";

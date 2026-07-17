@@ -1,8 +1,8 @@
 import { runGit, readCommits } from "../git/run.js";
 import { buildIndex, type RepoIndex } from "./build.js";
 
-// Camada 2: cache do índice, em memória por processo (= por sessão do servidor
-// stdio). Chave: o repo. Valor: o índice e o SHA do HEAD em que foi construído.
+// Cache em memória por processo (= por sessão do servidor stdio). Chave: o repo;
+// valor: o índice e o SHA do HEAD em que foi construído (a chave de invalidação).
 const cache = new Map<string, { head: string; index: RepoIndex }>();
 
 // SHA do HEAD, ou "" se o repo ainda não tem commits. É a chave de invalidação.

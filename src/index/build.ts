@@ -1,7 +1,5 @@
 import type { Commit } from "../git/commits.js";
 
-// Camada 2: o índice reorganiza os commits para consulta rápida — não calcula
-// métricas (isso é camada 3). buildIndex é puro; o cache impuro está em get.ts.
 export type RepoIndex = {
   commits: Commit[]; // do mais novo para o mais antigo
   byFile: Map<string, Commit[]>; // arquivo → commits que o tocaram

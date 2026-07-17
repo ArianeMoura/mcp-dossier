@@ -1,7 +1,5 @@
 import type { RepoIndex } from "../index/build.js";
 
-// Camada 3: acoplamento temporal. Puro — consome o índice, não fala com git.
-
 export type CoupledFile = {
   path: string;
   strength: number; // co-mudanças / mudanças do alvo (direcional)

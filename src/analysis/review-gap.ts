@@ -1,9 +1,6 @@
 import type { RepoIndex } from "../index/build.js";
 import { coupledFiles } from "./coupling.js";
 
-// Camada 3: a lacuna de revisão. Puro — recebe o conjunto de arquivos alterados
-// e cruza com o acoplamento histórico. Não fala com git.
-
 export type GapSuggestion = {
   path: string; // arquivo provavelmente esquecido
   strength: number; // acoplamento com o arquivo alterado que o puxou

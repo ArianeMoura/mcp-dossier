@@ -7,6 +7,7 @@ import { registerFileDossier } from "./tools/file-dossier.js";
 import { registerHotspots } from "./tools/hotspots.js";
 import { registerRepoBriefing } from "./tools/repo-briefing.js";
 import { registerReviewGap } from "./tools/review-gap.js";
+import { registerDossierResources } from "./resources/dossier.js";
 
 const server = new McpServer({
   name: "mcp-dossier",
@@ -18,6 +19,7 @@ registerFileDossier(server);
 registerHotspots(server);
 registerRepoBriefing(server);
 registerReviewGap(server);
+registerDossierResources(server);
 
 console.error("mcp-dossier: servidor iniciado"); // stderr: stdout é do protocolo
 

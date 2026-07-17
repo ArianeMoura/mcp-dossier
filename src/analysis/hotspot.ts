@@ -4,8 +4,6 @@ import { join } from "node:path";
 import { getIndex } from "../index/get.js";
 import type { RepoIndex } from "../index/build.js";
 
-// Camada 3: hotspot = churn × complexidade.
-
 // Complexidade por indentação: média de espaços à esquerda das linhas não-vazias.
 // Proxy agnóstico de linguagem para aninhamento; cega para funções longas e planas.
 export function indentationComplexity(content: string): number {

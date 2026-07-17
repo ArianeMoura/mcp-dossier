@@ -1,8 +1,7 @@
 import type { RepoIndex } from "../index/build.js";
 import { decayWeight } from "./decay.js";
 
-// Camada 3: risco. Heurística — combina sinais, com pesos arbitrários (v1).
-
+// Heurística: combina sinais com pesos arbitrários (v1).
 export type RiskProfile = {
   path: string;
   churn: number;

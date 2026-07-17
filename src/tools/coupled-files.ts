@@ -5,10 +5,7 @@ import { getIndex } from "../index/get.js";
 import { coupledFiles, type CoupledFile } from "../analysis/coupling.js";
 import { coupledLine } from "./format.js";
 
-// Camada 4: tradução. A análise vem da camada 3; aqui só formatamos.
-
-// Puro: transforma o resultado da análise no texto que vai para o modelo.
-// Denso de propósito — cada token custa contexto.
+// Denso de propósito: cada token de saída custa contexto do modelo.
 export function formatCoupled(target: string, results: CoupledFile[]): string {
   if (results.length === 0) {
     return `Nenhum arquivo muda junto com ${target} de forma consistente.`;

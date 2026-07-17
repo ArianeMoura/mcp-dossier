@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 
 import { LOG_FORMAT, parseLog, type Commit } from "./commits.js";
 
-// Roda o git num repo e devolve o stdout. Única função impura da camada 1.
+// Roda o git num repo e devolve o stdout. A única função que faz I/O no adapter.
 // spawn (não exec): sem teto de buffer para saídas grandes, e sem shell — os
 // args vão literais, então um caminho com espaço ou `;` não vira outro comando.
 export function runGit(repoPath: string, args: string[]): Promise<string> {
@@ -34,8 +34,7 @@ export function runGit(repoPath: string, args: string[]): Promise<string> {
   });
 }
 
-// API pública da camada 1: o histórico como Commit[] tipados, do mais recente
-// ao mais antigo.
+// O histórico como Commit[] tipados, do mais recente ao mais antigo.
 export async function readCommits(repoPath: string): Promise<Commit[]> {
   try {
     const raw = await runGit(repoPath, [

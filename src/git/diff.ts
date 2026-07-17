@@ -29,8 +29,8 @@ async function findBase(repoPath: string): Promise<string> {
   return "HEAD";
 }
 
-// Camada 1: os arquivos que a mudança atual tocou — commits desta branch desde
-// a base MAIS o que ainda não foi commitado (working tree e arquivos novos).
+// Os arquivos que a mudança atual tocou: commits desta branch desde a base MAIS
+// o que ainda não foi commitado (working tree e arquivos novos).
 export async function changedFiles(repoPath: string): Promise<string[]> {
   const base = await findBase(repoPath);
 

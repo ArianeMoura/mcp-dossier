@@ -1,8 +1,6 @@
 import type { RepoIndex } from "../index/build.js";
 import { decayWeight } from "./decay.js";
 
-// Camada 3: ownership com decaimento por recência. Puro (recebe `now`).
-
 export type AuthorKnowledge = {
   email: string; // identidade estável da pessoa
   author: string; // nome mais recente visto para esse email
