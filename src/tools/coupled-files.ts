@@ -3,6 +3,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { getIndex } from "../index/get.js";
 import { coupledFiles, type CoupledFile } from "../analysis/coupling.js";
+import { coupledLine } from "./format.js";
 
 // Camada 4: tradução. A análise vem da camada 3; aqui só formatamos.
 
@@ -13,11 +14,7 @@ export function formatCoupled(target: string, results: CoupledFile[]): string {
     return `Nenhum arquivo muda junto com ${target} de forma consistente.`;
   }
 
-  const lines = results.map((result) => {
-    const percentage = Math.round(result.strength * 100);
-
-    return `  ${percentage}% (${result.coChanges}x) ${result.path}`;
-  });
+  const lines = results.map((result) => `  ${coupledLine(result)}`);
 
   return [`${target} historicamente muda junto com:`, ...lines].join("\n");
 }
