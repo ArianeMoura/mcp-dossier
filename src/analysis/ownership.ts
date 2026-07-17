@@ -1,4 +1,5 @@
 import type { RepoIndex } from "../index/build.js";
+import { decayWeight } from "./decay.js";
 
 // Camada 3: ownership com decaimento por recência. Puro (recebe `now`).
 
@@ -8,9 +9,6 @@ export type AuthorKnowledge = {
   knowledge: number; // Σ linhas × 0.5^(idade_meses / meia-vida)
 };
 
-const HALF_LIFE_MONTHS = 6;
-const MS_PER_MONTH = 1000 * 60 * 60 * 24 * 30; // ~30 dias (heurística)
-
 // Conhecimento por autor de um arquivo, do maior para o menor. Cada commit
 // pesa pelas linhas tocadas, descontadas pela idade (meia-vida).
 export function fileOwnership(
@@ -19,8 +17,6 @@ export function fileOwnership(
   now: Date,
   opts: { halfLifeMonths?: number } = {},
 ): AuthorKnowledge[] {
-  const { halfLifeMonths = HALF_LIFE_MONTHS } = opts;
-
   const commits = index.byFile.get(path) ?? [];
 
   if (commits.length === 0) {
@@ -37,9 +33,7 @@ export function fileOwnership(
 
     const lines = change ? change.added + change.removed : 0;
 
-    const ageMonths = (now.getTime() - commit.date.getTime()) / MS_PER_MONTH;
-
-    const weight = lines * Math.pow(0.5, ageMonths / halfLifeMonths);
+    const weight = lines * decayWeight(commit.date, now, opts.halfLifeMonths);
 
     const author = knowledgeByAuthor.get(commit.email) ?? {
       author: commit.author,

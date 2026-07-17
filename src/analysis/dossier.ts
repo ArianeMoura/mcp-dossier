@@ -2,6 +2,7 @@ import type { RepoIndex } from "../index/build.js";
 import { coupledFiles, type CoupledFile } from "./coupling.js";
 import { fileOwnership, type AuthorKnowledge } from "./ownership.js";
 import { fileRisk, type RiskProfile } from "./risk.js";
+import { MS_PER_DAY } from "./decay.js";
 
 export type FileDossier = {
   path: string;
@@ -16,7 +17,6 @@ export type FileDossier = {
   recentSubjects: string[];
 };
 
-const MS_PER_DAY = 1000 * 60 * 60 * 24;
 const MAX_OWNERS = 3;
 const MAX_COUPLED = 5;
 const MAX_SUBJECTS = 3;
