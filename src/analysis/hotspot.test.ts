@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { indentationComplexity, rankHotspots } from "./hotspot.js";
+import { indentationComplexity, rankHotspots, isNoise } from "./hotspot.js";
 import { buildIndex } from "../index/build.js";
 import type { Commit } from "../git/commits.js";
 
@@ -89,5 +89,18 @@ describe("rankHotspots", () => {
   it("pula arquivos que sumiram do disco (readContent null)", () => {
     const paths = rankHotspots(index, readContent).map((h) => h.path);
     expect(paths).not.toContain("c");
+  });
+});
+
+describe("isNoise", () => {
+  it("marca lock files e minificados como ruído", () => {
+    expect(isNoise("package-lock.json")).toBe(true);
+    expect(isNoise("frontend/yarn.lock")).toBe(true);
+    expect(isNoise("dist/app.min.js")).toBe(true);
+  });
+
+  it("não marca código de verdade", () => {
+    expect(isNoise("src/git/run.ts")).toBe(false);
+    expect(isNoise("src/lock.ts")).toBe(false); // "lock" no nome, mas é código
   });
 });

@@ -53,19 +53,34 @@ export function rankHotspots(
   return spots.sort((a, b) => b.score - a.score);
 }
 
-// Wrapper impuro: lê os arquivos do disco e ranqueia.
+// Arquivos gerados/de dados: têm churn e indentação, mas não são código —
+// a complexidade por indentação os superestima (ex.: package-lock.json).
+const NOISE = [
+  /(^|\/)package-lock\.json$/,
+  /(^|\/)yarn\.lock$/,
+  /(^|\/)pnpm-lock\.yaml$/,
+  /\.min\.(js|css)$/,
+];
+
+export function isNoise(path: string): boolean {
+  return NOISE.some((re) => re.test(path));
+}
+
+// Wrapper impuro: lê os arquivos do disco e ranqueia, pulando o ruído.
 export async function hotspots(repoPath: string): Promise<Hotspot[]> {
   const index = await getIndex(repoPath);
 
   const contents = new Map<string, string | null>();
   await Promise.all(
-    [...index.byFile.keys()].map(async (path) => {
-      try {
-        contents.set(path, await readFile(join(repoPath, path), "utf8"));
-      } catch {
-        contents.set(path, null); // sumiu do working tree
-      }
-    }),
+    [...index.byFile.keys()]
+      .filter((path) => !isNoise(path))
+      .map(async (path) => {
+        try {
+          contents.set(path, await readFile(join(repoPath, path), "utf8"));
+        } catch {
+          contents.set(path, null); // sumiu do working tree
+        }
+      }),
   );
 
   return rankHotspots(index, (path) => contents.get(path) ?? null);
