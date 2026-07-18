@@ -24,33 +24,33 @@ function commit(
   };
 }
 
-// 4 commits hoje: 2 bugfix, 2 autores.
+// 4 commits today: 2 bugfixes, 2 authors.
 const index = buildIndex([
   commit("ana@x", monthsAgo(0), "fix: crash"),
-  commit("ana@x", monthsAgo(0), "feat: nova tela"),
-  commit("bia@x", monthsAgo(0), "conserta o bug do login"),
+  commit("ana@x", monthsAgo(0), "feat: new screen"),
+  commit("bia@x", monthsAgo(0), "fixes the login bug"),
   commit("bia@x", monthsAgo(0), "refactor"),
 ]);
 
 describe("fileRisk", () => {
-  it("churn = número de commits", () => {
+  it("churn = number of commits", () => {
     expect(fileRisk(index, "F", NOW)?.churn).toBe(4);
   });
 
-  it("bugfixRatio pela regex (2 de 4 casam fix/bug)", () => {
+  it("bugfixRatio from the regex (2 of 4 match fix/bug)", () => {
     expect(fileRisk(index, "F", NOW)?.bugfixRatio).toBeCloseTo(0.5);
   });
 
-  it("authorCount = autores distintos", () => {
+  it("authorCount = distinct authors", () => {
     expect(fileRisk(index, "F", NOW)?.authorCount).toBe(2);
   });
 
-  it("score = churn × (1 + bugfixRatio) × authorCount × recência", () => {
-    // 4 × 1.5 × 2 × 1 (recência hoje) = 12
+  it("score = churn × (1 + bugfixRatio) × authorCount × recency", () => {
+    // 4 × 1.5 × 2 × 1 (recency today) = 12
     expect(fileRisk(index, "F", NOW)?.score).toBeCloseTo(12);
   });
 
-  it("recência: arquivo parado há tempos pontua menos que o recente", () => {
+  it("recency: a long-idle file scores lower than a recent one", () => {
     const stale = buildIndex([commit("ana@x", monthsAgo(12), "fix: x")]);
     const fresh = buildIndex([commit("ana@x", monthsAgo(0), "fix: x")]);
     const s = fileRisk(stale, "F", NOW)!.score;
@@ -58,14 +58,14 @@ describe("fileRisk", () => {
     expect(s).toBeLessThan(f);
   });
 
-  it("regex ingênua conta 'prefix' como bugfix (falso positivo)", () => {
+  it("naive regex counts 'prefix' as a bugfix (false positive)", () => {
     const idx = buildIndex([
       commit("ana@x", monthsAgo(0), "add prefix helper"),
     ]);
     expect(fileRisk(idx, "F", NOW)?.bugfixRatio).toBe(1);
   });
 
-  it("arquivo que ninguém tocou → null", () => {
-    expect(fileRisk(index, "nao/existe", NOW)).toBeNull();
+  it("a file nobody touched → null", () => {
+    expect(fileRisk(index, "does/not/exist", NOW)).toBeNull();
   });
 });

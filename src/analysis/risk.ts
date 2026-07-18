@@ -1,20 +1,20 @@
 import type { RepoIndex } from "../index/build.js";
 import { decayWeight } from "./decay.js";
 
-// Heurística: combina sinais com pesos arbitrários (v1).
+// Heuristic: blends signals with arbitrary weights (v1).
 export type RiskProfile = {
   path: string;
   churn: number;
-  bugfixRatio: number; // fração de commits que parecem conserto
+  bugfixRatio: number; // fraction of commits that look like fixes
   authorCount: number;
   score: number;
 };
 
-// Ingênua de propósito: casa "prefix"/"suffix" e perde "corrige" (outros idiomas).
+// Deliberately naive: matches "prefix"/"suffix" and misses non-English fixes.
 const BUGFIX_RE = /fix|bug|hotfix|revert/i;
 
-// Perfil de risco de um arquivo, ou null se ninguém o tocou.
-// score = churn × (1 + bugfixRatio) × authorCount × recência.
+// Risk profile of a file, or null if nobody touched it.
+// score = churn × (1 + bugfixRatio) × authorCount × recency.
 export function fileRisk(
   index: RepoIndex,
   path: string,

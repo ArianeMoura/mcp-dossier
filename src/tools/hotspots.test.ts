@@ -9,30 +9,30 @@ const spots: Hotspot[] = [
 ];
 
 describe("formatHotspots", () => {
-  it("uma linha por hotspot, com score, churn e caminho", () => {
+  it("one line per hotspot, with score, churn and path", () => {
     const out = formatHotspots(spots);
     expect(out).toContain("src/git/run.ts");
     expect(out).toContain("src/git/commits.ts");
   });
 
-  it("mostra o score com uma casa decimal", () => {
+  it("shows the score with one decimal place", () => {
     expect(formatHotspots(spots)).toContain("15.7");
   });
 
-  it("mostra o churn como contexto do score", () => {
+  it("shows churn as context for the score", () => {
     expect(formatHotspots(spots)).toContain("4 commits");
   });
 
-  it("lista vazia → mensagem clara, não texto vazio", () => {
+  it("empty list → clear message, not empty text", () => {
     const out = formatHotspots([]);
     expect(out.length).toBeGreaterThan(0);
     expect(out).not.toContain("undefined");
   });
 
-  it("uma linha por hotspot além do cabeçalho", () => {
-    const linhas = formatHotspots(spots)
+  it("one line per hotspot beyond the header", () => {
+    const lines = formatHotspots(spots)
       .split("\n")
       .filter((l) => l.trim() !== "");
-    expect(linhas).toHaveLength(3); // cabeçalho + 2
+    expect(lines).toHaveLength(3); // header + 2
   });
 });

@@ -2,14 +2,14 @@ import type { RepoIndex } from "../index/build.js";
 import { coupledFiles } from "./coupling.js";
 
 export type GapSuggestion = {
-  path: string; // arquivo provavelmente esquecido
-  strength: number; // acoplamento com o arquivo alterado que o puxou
+  path: string; // the likely-forgotten file
+  strength: number; // coupling with the changed file that surfaced it
   coChanges: number;
-  relatedTo: string; // qual arquivo que você mexeu sugeriu este
+  relatedTo: string; // which file you changed surfaced this one
 };
 
-// Para cada arquivo alterado, os arquivos que costumam mudar junto e que você
-// NÃO tocou. Quando um mesmo esquecido é puxado por vários, fica a maior força.
+// For each changed file, the files that usually change with it and that you did
+// NOT touch. When several changed files surface the same one, keep the strongest.
 export function reviewGap(
   index: RepoIndex,
   changed: string[],

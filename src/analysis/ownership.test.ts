@@ -26,13 +26,13 @@ function commit(
 }
 
 describe("fileOwnership", () => {
-  // bia: 30 linhas hoje. ana: 100 linhas há 12 meses.
+  // bia: 30 lines today. ana: 100 lines 12 months ago.
   const index = buildIndex([
     commit("bia@x", monthsAgo(0), 30),
     commit("ana@x", monthsAgo(12), 100),
   ]);
 
-  it("commit de hoje pesa 1; commit antigo decai pela meia-vida", () => {
+  it("a commit today weighs 1; an old commit decays by half-life", () => {
     const r = fileOwnership(index, "F", NOW);
     const bia = r.find((x) => x.email === "bia@x");
     const ana = r.find((x) => x.email === "ana@x");
@@ -40,16 +40,16 @@ describe("fileOwnership", () => {
     expect(ana?.knowledge).toBeCloseTo(25); // 100 × 0.5^(12/6) = 100 × 0.25
   });
 
-  it("rankeia por conhecimento: recência vence volume", () => {
+  it("ranks by knowledge: recency beats volume", () => {
     expect(fileOwnership(index, "F", NOW)[0].email).toBe("bia@x");
   });
 
-  it("conta linhas adicionadas + removidas", () => {
+  it("counts added + removed lines", () => {
     const idx = buildIndex([commit("ana@x", monthsAgo(0), 10, 5)]);
     expect(fileOwnership(idx, "F", NOW)[0].knowledge).toBeCloseTo(15);
   });
 
-  it("soma os vários commits do mesmo autor", () => {
+  it("sums an author's multiple commits", () => {
     const idx = buildIndex([
       commit("ana@x", monthsAgo(0), 10),
       commit("ana@x", monthsAgo(0), 5),
@@ -59,7 +59,7 @@ describe("fileOwnership", () => {
     expect(r[0].knowledge).toBeCloseTo(15);
   });
 
-  it("arquivo que ninguém tocou → []", () => {
-    expect(fileOwnership(index, "nao/existe", NOW)).toEqual([]);
+  it("a file nobody touched → []", () => {
+    expect(fileOwnership(index, "does/not/exist", NOW)).toEqual([]);
   });
 });

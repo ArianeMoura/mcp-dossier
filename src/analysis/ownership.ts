@@ -2,13 +2,13 @@ import type { RepoIndex } from "../index/build.js";
 import { decayWeight } from "./decay.js";
 
 export type AuthorKnowledge = {
-  email: string; // identidade estável da pessoa
-  author: string; // nome mais recente visto para esse email
-  knowledge: number; // Σ linhas × 0.5^(idade_meses / meia-vida)
+  email: string; // stable identity of a person
+  author: string; // most recent name seen for this email
+  knowledge: number; // Σ lines × 0.5^(age_months / half_life)
 };
 
-// Conhecimento por autor de um arquivo, do maior para o menor. Cada commit
-// pesa pelas linhas tocadas, descontadas pela idade (meia-vida).
+// Knowledge per author of a file, highest first. Each commit is weighted by the
+// lines it touched, discounted by its age (half-life).
 export function fileOwnership(
   index: RepoIndex,
   path: string,

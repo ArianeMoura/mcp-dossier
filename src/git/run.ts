@@ -2,9 +2,9 @@ import { spawn } from "node:child_process";
 
 import { LOG_FORMAT, parseLog, type Commit } from "./commits.js";
 
-// Roda o git num repo e devolve o stdout. A única função que faz I/O no adapter.
-// spawn (não exec): sem teto de buffer para saídas grandes, e sem shell — os
-// args vão literais, então um caminho com espaço ou `;` não vira outro comando.
+// Runs git in a repo and returns stdout. The only function that does I/O here.
+// spawn (not exec): no buffer ceiling for large output, and no shell — args are
+// passed literally, so a path with a space or `;` can't become another command.
 export function runGit(repoPath: string, args: string[]): Promise<string> {
   return new Promise((resolve, reject) => {
     const child = spawn("git", ["-C", repoPath, ...args]);
@@ -19,14 +19,14 @@ export function runGit(repoPath: string, args: string[]): Promise<string> {
       stderr += chunk;
     });
 
-    child.on("error", reject); // git não pôde ser executado (ex.: não instalado)
+    child.on("error", reject); // git couldn't be executed (e.g. not installed)
     child.on("close", (code) => {
       if (code === 0) {
         resolve(stdout);
       } else {
         reject(
           new Error(
-            `git ${args.join(" ")} falhou (código ${code}): ${stderr.trim()}`,
+            `git ${args.join(" ")} failed (exit ${code}): ${stderr.trim()}`,
           ),
         );
       }
@@ -34,7 +34,7 @@ export function runGit(repoPath: string, args: string[]): Promise<string> {
   });
 }
 
-// O histórico como Commit[] tipados, do mais recente ao mais antigo.
+// The history as typed Commit[], newest first.
 export async function readCommits(repoPath: string): Promise<Commit[]> {
   try {
     const raw = await runGit(repoPath, [
@@ -44,8 +44,8 @@ export async function readCommits(repoPath: string): Promise<Commit[]> {
     ]);
     return parseLog(raw);
   } catch (err) {
-    // Repo sem commits faz o `git log` falhar. Confirmamos o caso à prova de
-    // idioma: rev-list --count responde "0" e sai com sucesso num repo vazio.
+    // An empty repo makes `git log` fail. Confirm that case in a
+    // language-agnostic way: rev-list --count returns "0" and exits 0.
     const count = (
       await runGit(repoPath, ["rev-list", "--all", "--count"])
     ).trim();

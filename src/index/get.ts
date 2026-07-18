@@ -1,11 +1,11 @@
 import { runGit, readCommits } from "../git/run.js";
 import { buildIndex, type RepoIndex } from "./build.js";
 
-// Cache em memória por processo (= por sessão do servidor stdio). Chave: o repo;
-// valor: o índice e o SHA do HEAD em que foi construído (a chave de invalidação).
+// In-memory cache per process (= per stdio server session). Key: the repo path;
+// value: the index and the HEAD SHA it was built at (the invalidation key).
 const cache = new Map<string, { head: string; index: RepoIndex }>();
 
-// SHA do HEAD, ou "" se o repo ainda não tem commits. É a chave de invalidação.
+// The HEAD SHA, or "" if the repo has no commits yet. Used as the cache key.
 async function currentHead(repoPath: string): Promise<string> {
   try {
     return (await runGit(repoPath, ["rev-parse", "HEAD"])).trim();
@@ -14,9 +14,9 @@ async function currentHead(repoPath: string): Promise<string> {
   }
 }
 
-// Constrói o índice na primeira vez e reusa o cache nas seguintes, reconstruindo
-// só quando o HEAD muda. A checagem (`rev-parse`) é barata; a varredura só roda
-// quando há commit novo.
+// Builds the index on first use and reuses the cache afterwards, rebuilding only
+// when HEAD moves. The check (`rev-parse`) is cheap; the full scan runs only when
+// there are new commits.
 export async function getIndex(repoPath: string): Promise<RepoIndex> {
   const head = await currentHead(repoPath);
 

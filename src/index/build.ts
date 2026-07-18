@@ -1,11 +1,11 @@
 import type { Commit } from "../git/commits.js";
 
 export type RepoIndex = {
-  commits: Commit[]; // do mais novo para o mais antigo
-  byFile: Map<string, Commit[]>; // arquivo → commits que o tocaram
+  commits: Commit[]; // newest first
+  byFile: Map<string, Commit[]>; // file path → commits that touched it
 };
 
-// Índice invertido: troca "varrer todos os commits" por "byFile.get(arquivo)".
+// Inverted index: trades "scan every commit" for "byFile.get(path)".
 export function buildIndex(commits: Commit[]): RepoIndex {
   const byFile = new Map<string, Commit[]>();
 

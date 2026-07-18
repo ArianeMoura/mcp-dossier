@@ -21,34 +21,34 @@ const spots: Hotspot[] = [
 ];
 
 describe("formatRepoBriefing", () => {
-  it("resume volume: commits e arquivos", () => {
+  it("summarizes volume: commits and files", () => {
     const out = formatRepoBriefing(briefing, spots);
     expect(out).toContain("8 commits");
-    expect(out).toContain("12 arquivos");
+    expect(out).toContain("12 files");
   });
 
-  it("mostra o período em datas ISO", () => {
+  it("shows the time span as ISO dates", () => {
     const out = formatRepoBriefing(briefing, spots);
     expect(out).toContain("2026-07-15");
     expect(out).toContain("2026-07-16");
   });
 
-  it("lista os autores mais ativos com contagem de commits", () => {
+  it("lists the most active authors with commit counts", () => {
     const out = formatRepoBriefing(briefing, spots);
     expect(out).toContain("Ariane Moura");
     expect(out).toContain("5 commits");
     expect(out).toContain("Bia Souza");
   });
 
-  it("lista os hotspots com score e caminho", () => {
+  it("lists hotspots with score and path", () => {
     const out = formatRepoBriefing(briefing, spots);
     expect(out).toContain("15.7");
     expect(out).toContain("src/git/run.ts");
   });
 
-  it("sem hotspots: não imprime cabeçalho da seção", () => {
+  it("no hotspots: does not print the section header", () => {
     const out = formatRepoBriefing(briefing, []);
-    expect(out).not.toContain("dói");
-    expect(out).toContain("8 commits"); // mas o resto continua
+    expect(out).not.toContain("hurts");
+    expect(out).toContain("8 commits"); // the rest still shows
   });
 });

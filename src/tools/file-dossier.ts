@@ -5,7 +5,7 @@ import { getIndex } from "../index/get.js";
 import { buildFileDossier, type FileDossier } from "../analysis/dossier.js";
 import { coupledLine } from "./format.js";
 
-const autores = (n: number) => `${n} ${n === 1 ? "autor" : "autores"}`;
+const authorLabel = (n: number) => `${n} ${n === 1 ? "author" : "authors"}`;
 
 export function formatFileDossier(d: FileDossier): string {
   const parts: string[] = [];
@@ -14,18 +14,18 @@ export function formatFileDossier(d: FileDossier): string {
   parts.push("");
 
   parts.push(
-    `  ${d.churn} commits · ${autores(d.risk.authorCount)} · criado há ${d.daysSinceFirstChange}d · último toque há ${d.daysSinceLastChange}d`,
+    `  ${d.churn} commits · ${authorLabel(d.risk.authorCount)} · first touched ${d.daysSinceFirstChange}d ago · last touched ${d.daysSinceLastChange}d ago`,
   );
 
   parts.push(
-    `  risco ${d.risk.score.toFixed(1)} (churn ${d.churn} · ${Math.round(
+    `  risk ${d.risk.score.toFixed(1)} (churn ${d.churn} · ${Math.round(
       d.risk.bugfixRatio * 100,
-    )}% bugfix · ${autores(d.risk.authorCount)})`,
+    )}% bugfix · ${authorLabel(d.risk.authorCount)})`,
   );
 
   if (d.owners.length > 0) {
     parts.push("");
-    parts.push("  Quem conhece:");
+    parts.push("  Who knows it:");
 
     for (const owner of d.owners) {
       parts.push(
@@ -36,7 +36,7 @@ export function formatFileDossier(d: FileDossier): string {
 
   if (d.coupled.length > 0) {
     parts.push("");
-    parts.push("  Muda junto com:");
+    parts.push("  Changes together with:");
 
     for (const file of d.coupled) {
       parts.push(`    ${coupledLine(file)}`);
@@ -45,7 +45,7 @@ export function formatFileDossier(d: FileDossier): string {
 
   if (d.recentSubjects.length > 0) {
     parts.push("");
-    parts.push("  Commits recentes:");
+    parts.push("  Recent commits:");
 
     for (const subject of d.recentSubjects) {
       parts.push(`    ${subject}`);
@@ -59,13 +59,11 @@ export function registerFileDossier(server: McpServer) {
   server.registerTool(
     "file_dossier",
     {
-      title: "Dossiê de um arquivo",
+      title: "Dossier for a file",
       description:
-        "Tudo que a história do repositório sabe sobre um arquivo: risco, quem entende dele, o que muda junto, e o que andou acontecendo. Use antes de mexer num arquivo que você não conhece.",
+        "Everything the repository's history knows about a file: risk, who understands it, what changes with it, and what's been happening. Use before touching a file you don't know.",
       inputSchema: {
-        path: z
-          .string()
-          .describe("Caminho do arquivo, relativo à raiz do repositório"),
+        path: z.string().describe("File path, relative to the repository root"),
       },
     },
     async ({ path }) => {
@@ -77,7 +75,7 @@ export function registerFileDossier(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Nenhum commit tocou ${path} neste repositório.`,
+              text: `No commit has touched ${path} in this repository.`,
             },
           ],
         };

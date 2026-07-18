@@ -10,36 +10,36 @@ export function registerDossierPrompts(server: McpServer) {
   server.registerPrompt(
     "onboard-me",
     {
-      title: "Cheguei agora, me situa",
-      description: "Panorama do repositório para quem está chegando.",
+      title: "Get me up to speed",
+      description: "Repository overview for someone just arriving.",
     },
     () =>
       userText(
-        "Cheguei agora neste repositório e não o conheço. Use a tool repo_briefing para o panorama e hotspots para onde a complexidade se concentra. Depois me explique, em poucas linhas: o que é este projeto, quais áreas concentram risco, e por onde começar a ler.",
+        "I just arrived in this repository and don't know it. Use the repo_briefing tool for the overview and hotspots for where complexity concentrates. Then explain, in a few lines: what this project is, which areas concentrate risk, and where to start reading.",
       ),
   );
 
   server.registerPrompt(
     "review-my-branch",
     {
-      title: "Revisar minha branch antes do PR",
-      description: "Aponta o que costuma mudar junto e você esqueceu.",
+      title: "Review my branch before the PR",
+      description: "Points out what usually changes together and you forgot.",
     },
     () =>
       userText(
-        "Vou abrir um PR. Use a tool review_gap para ver o que mudei nesta branch e quais arquivos historicamente mudam junto que eu ainda não toquei. Liste o que eu deveria revisar ou completar antes de abrir o PR, com o porquê de cada item.",
+        "I'm about to open a PR. Use the review_gap tool to see what I changed on this branch and which files historically change together that I haven't touched yet. List what I should review or complete before opening the PR, with the reason for each item.",
       ),
   );
 
   server.registerPrompt(
     "standup",
     {
-      title: "Meu standup",
-      description: "Resumo do que andou acontecendo no repositório.",
+      title: "My standup",
+      description: "Summary of what's been happening in the repository.",
     },
     () =>
       userText(
-        "Preciso de um resumo curto para o standup. Use a tool repo_briefing para ver o período e a atividade recente, e me dê 3 a 5 bullets do que andou acontecendo no repositório.",
+        "I need a short summary for standup. Use the repo_briefing tool to see the time span and recent activity, and give me 3 to 5 bullets on what's been happening in the repository.",
       ),
   );
 }

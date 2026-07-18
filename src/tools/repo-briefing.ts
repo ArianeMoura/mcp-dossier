@@ -10,13 +10,13 @@ export function formatRepoBriefing(b: RepoBriefing, spots: Hotspot[]): string {
   const parts: string[] = [];
 
   parts.push(
-    `${b.totalCommits} commits · ${b.fileCount} arquivos · ${isoDay(
+    `${b.totalCommits} commits · ${b.fileCount} files · ${isoDay(
       b.firstCommit!,
-    )} a ${isoDay(b.lastCommit!)}`,
+    )} to ${isoDay(b.lastCommit!)}`,
   );
 
   parts.push("");
-  parts.push("  Quem mais mexe:");
+  parts.push("  Most active:");
 
   for (const author of b.topAuthors) {
     parts.push(`    ${author.commits} commits  ${author.author}`);
@@ -24,7 +24,7 @@ export function formatRepoBriefing(b: RepoBriefing, spots: Hotspot[]): string {
 
   if (spots.length > 0) {
     parts.push("");
-    parts.push("  Onde mais dói:");
+    parts.push("  Where it hurts most:");
 
     for (const spot of spots) {
       parts.push(`    ${spot.score.toFixed(1)}  ${spot.path}`);
@@ -38,9 +38,9 @@ export function registerRepoBriefing(server: McpServer) {
   server.registerTool(
     "repo_briefing",
     {
-      title: "Cheguei agora, me situa",
+      title: "Just arrived, get me up to speed",
       description:
-        "Panorama do repositório: volume, período, quem mais contribui e onde a complexidade se concentra. Use ao entrar num projeto que você não conhece.",
+        "Overview of the repository: volume, time span, top contributors and where complexity concentrates. Use when joining a project you don't know.",
       inputSchema: {},
     },
     async () => {
@@ -49,7 +49,7 @@ export function registerRepoBriefing(server: McpServer) {
 
       if (briefing.totalCommits === 0) {
         return {
-          content: [{ type: "text", text: "Repositório sem commits ainda." }],
+          content: [{ type: "text", text: "Repository has no commits yet." }],
         };
       }
 

@@ -37,7 +37,7 @@ export function buildRepoBriefing(index: RepoIndex): RepoBriefing {
   return {
     totalCommits: commits.length,
     fileCount: index.byFile.size,
-    // commits vem do mais novo para o mais antigo.
+    // commits is newest first.
     firstCommit: commits.length ? commits[commits.length - 1].date : null,
     lastCommit: commits.length ? commits[0].date : null,
     topAuthors,

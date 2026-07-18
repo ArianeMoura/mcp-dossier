@@ -4,8 +4,8 @@ import { join } from "node:path";
 import { getIndex } from "../index/get.js";
 import type { RepoIndex } from "../index/build.js";
 
-// Complexidade por indentação: média de espaços à esquerda das linhas não-vazias.
-// Proxy agnóstico de linguagem para aninhamento; cega para funções longas e planas.
+// Indentation complexity: average leading whitespace of non-blank lines. A
+// language-agnostic proxy for nesting; blind to long, flat functions.
 export function indentationComplexity(content: string): number {
   const lines = content.split("\n");
 
@@ -26,13 +26,13 @@ export function indentationComplexity(content: string): number {
 
 export type Hotspot = {
   path: string;
-  churn: number; // nº de commits que tocaram o arquivo
+  churn: number; // number of commits that touched the file
   complexity: number;
   score: number;
 };
 
-// Puro: ranqueia por churn × complexidade. readContent devolve o conteúdo atual
-// do arquivo, ou null se ele sumiu (pulado). O I/O fica no chamador → testável.
+// Pure: ranks by churn × complexity. `readContent` returns a file's current
+// content, or null if it's gone (skipped). I/O stays in the caller → testable.
 export function rankHotspots(
   index: RepoIndex,
   readContent: (path: string) => string | null,
@@ -51,8 +51,8 @@ export function rankHotspots(
   return spots.sort((a, b) => b.score - a.score);
 }
 
-// Arquivos gerados/de dados: têm churn e indentação, mas não são código —
-// a complexidade por indentação os superestima (ex.: package-lock.json).
+// Generated/data files: they have churn and indentation but aren't code —
+// indentation complexity overrates them (e.g. package-lock.json).
 const NOISE = [
   /(^|\/)package-lock\.json$/,
   /(^|\/)yarn\.lock$/,
@@ -64,7 +64,7 @@ export function isNoise(path: string): boolean {
   return NOISE.some((re) => re.test(path));
 }
 
-// Wrapper impuro: lê os arquivos do disco e ranqueia, pulando o ruído.
+// Impure wrapper: reads files from disk and ranks them, skipping noise.
 export async function hotspots(repoPath: string): Promise<Hotspot[]> {
   const index = await getIndex(repoPath);
 
@@ -76,7 +76,7 @@ export async function hotspots(repoPath: string): Promise<Hotspot[]> {
         try {
           contents.set(path, await readFile(join(repoPath, path), "utf8"));
         } catch {
-          contents.set(path, null); // sumiu do working tree
+          contents.set(path, null); // gone from the working tree
         }
       }),
   );

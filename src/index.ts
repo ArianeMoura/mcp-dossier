@@ -23,7 +23,7 @@ registerReviewGap(server);
 registerDossierResources(server);
 registerDossierPrompts(server);
 
-console.error("mcp-dossier: servidor iniciado"); // stderr: stdout é do protocolo
+console.error("mcp-dossier: server started"); // stderr: stdout is the protocol
 
 const transport = new StdioServerTransport();
 await server.connect(transport);

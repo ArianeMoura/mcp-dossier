@@ -10,30 +10,30 @@ const nested = [
   "    return 1;", // 4
   "  }", // 2
   "}", // 0
-].join("\n"); // média = (0+2+4+2+0)/5 = 1.6
+].join("\n"); // average = (0+2+4+2+0)/5 = 1.6
 
 const flat = ["const a = 1;", "const b = 2;", "return a + b;"].join("\n");
 
 describe("indentationComplexity", () => {
-  it("string vazia → 0", () => {
+  it("empty string → 0", () => {
     expect(indentationComplexity("")).toBe(0);
   });
 
-  it("código plano (sem indentação) → 0", () => {
+  it("flat code (no indentation) → 0", () => {
     expect(indentationComplexity(flat)).toBe(0);
   });
 
-  it("calcula a média de indentação das linhas não-vazias", () => {
+  it("computes the average indentation of non-blank lines", () => {
     expect(indentationComplexity(nested)).toBe(1.6);
   });
 
-  it("ignora linhas em branco (inclusive só com espaços)", () => {
+  it("ignores blank lines (including whitespace-only ones)", () => {
     const withBlanks = ["a", "", "  b", "   ", "c"].join("\n");
-    // não-vazias: "a"(0), "  b"(2), "c"(0) → média 2/3
+    // non-blank: "a"(0), "  b"(2), "c"(0) → average 2/3
     expect(indentationComplexity(withBlanks)).toBeCloseTo(2 / 3);
   });
 
-  it("código mais aninhado tem complexidade maior", () => {
+  it("more deeply nested code has higher complexity", () => {
     const shallow = ["if (x) {", "  a;", "}"].join("\n");
     const deep = [
       "f() {",
@@ -62,45 +62,45 @@ function commit(hash: string, paths: string[]): Commit {
 }
 
 describe("rankHotspots", () => {
-  // a: 3 commits; b: 1 commit; c: 2 commits (mas sumiu do disco)
+  // a: 3 commits; b: 1 commit; c: 2 commits (but gone from disk)
   const index = buildIndex([
     commit("c1", ["a", "b"]),
     commit("c2", ["a", "c"]),
     commit("c3", ["a", "c"]),
   ]);
 
-  const conteudo: Record<string, string | null> = {
-    a: ["f() {", "  if (x) {", "    y;", "  }", "}"].join("\n"), // complexidade 1.6
-    b: "const flat = 1;", // complexidade 0
-    c: null, // deletado
+  const content: Record<string, string | null> = {
+    a: ["f() {", "  if (x) {", "    y;", "  }", "}"].join("\n"), // complexity 1.6
+    b: "const flat = 1;", // complexity 0
+    c: null, // deleted
   };
-  const readContent = (path: string) => conteudo[path] ?? null;
+  const readContent = (path: string) => content[path] ?? null;
 
-  it("score = churn × complexidade", () => {
+  it("score = churn × complexity", () => {
     const a = rankHotspots(index, readContent).find((h) => h.path === "a");
     expect(a).toMatchObject({ churn: 3, complexity: 1.6, score: 3 * 1.6 });
   });
 
-  it("ranqueia do maior score para o menor", () => {
+  it("ranks from highest score to lowest", () => {
     const ranked = rankHotspots(index, readContent);
-    expect(ranked[0].path).toBe("a"); // 4.8 antes de b (0)
+    expect(ranked[0].path).toBe("a"); // 4.8 before b (0)
   });
 
-  it("pula arquivos que sumiram do disco (readContent null)", () => {
+  it("skips files gone from disk (readContent null)", () => {
     const paths = rankHotspots(index, readContent).map((h) => h.path);
     expect(paths).not.toContain("c");
   });
 });
 
 describe("isNoise", () => {
-  it("marca lock files e minificados como ruído", () => {
+  it("flags lock files and minified files as noise", () => {
     expect(isNoise("package-lock.json")).toBe(true);
     expect(isNoise("frontend/yarn.lock")).toBe(true);
     expect(isNoise("dist/app.min.js")).toBe(true);
   });
 
-  it("não marca código de verdade", () => {
+  it("does not flag real code", () => {
     expect(isNoise("src/git/run.ts")).toBe(false);
-    expect(isNoise("src/lock.ts")).toBe(false); // "lock" no nome, mas é código
+    expect(isNoise("src/lock.ts")).toBe(false); // "lock" in the name, but code
   });
 });

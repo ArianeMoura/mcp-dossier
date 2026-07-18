@@ -2,14 +2,14 @@ import type { RepoIndex } from "../index/build.js";
 
 export type CoupledFile = {
   path: string;
-  strength: number; // co-mudanças / mudanças do alvo (direcional)
-  coChanges: number; // quantas vezes mudaram juntos (o "support")
+  strength: number; // co-changes / target's changes (directional)
+  coChanges: number; // how many times they changed together (the "support")
 };
 
-// Commit acima deste tamanho é tsunami (prettier, rename em massa, merge): gera
-// acoplamento falso entre tudo. Limiar heurístico, documentado como limitação.
+// A commit larger than this is a tsunami (prettier, mass rename, merge): it
+// creates false coupling between everything. Heuristic threshold, documented.
 const MAX_COMMIT_FILES = 30;
-// Par visto menos que isto é ruído, não sinal.
+// A pair seen fewer times than this is noise, not signal.
 const MIN_CO_CHANGES = 2;
 
 export function coupledFiles(

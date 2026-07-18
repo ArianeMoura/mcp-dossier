@@ -13,23 +13,33 @@ import { formatFileDossier } from "../tools/file-dossier.js";
 import { formatRepoBriefing } from "../tools/repo-briefing.js";
 import { formatHotspots } from "../tools/hotspots.js";
 
+// Best-effort decode: malformed percent-encoding falls back to the raw value
+// instead of throwing.
+function safeDecode(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 export function registerDossierResources(server: McpServer) {
-  // dossier://file/{+path} — o {+path} captura barras (src/git/run.ts).
+  // dossier://file/{+path} — {+path} captures slashes (src/git/run.ts).
   server.registerResource(
     "file-dossier",
     new ResourceTemplate("dossier://file/{+path}", { list: undefined }),
     {
-      title: "Dossiê de um arquivo",
-      description: "O dossiê histórico de um arquivo, endereçável por URI.",
+      title: "Dossier for a file",
+      description: "The historical dossier of a file, addressable by URI.",
       mimeType: "text/plain",
     },
     async (uri, variables) => {
-      const path = decodeURIComponent(String(variables.path));
+      const path = safeDecode(String(variables.path));
       const index = await getIndex(process.cwd());
       const dossier = buildFileDossier(index, path, new Date());
       const text = dossier
         ? formatFileDossier(dossier)
-        : `Nenhum commit tocou ${path}.`;
+        : `No commit has touched ${path}.`;
       return { contents: [{ uri: uri.href, mimeType: "text/plain", text }] };
     },
   );
@@ -38,8 +48,8 @@ export function registerDossierResources(server: McpServer) {
     "repo-briefing",
     "dossier://repo",
     {
-      title: "Panorama do repositório",
-      description: "Resumo histórico do repositório.",
+      title: "Repository overview",
+      description: "Historical summary of the repository.",
       mimeType: "text/plain",
     },
     async (uri) => {
@@ -49,7 +59,7 @@ export function registerDossierResources(server: McpServer) {
 
       const text =
         briefing.totalCommits === 0
-          ? "Repositório sem commits ainda."
+          ? "Repository has no commits yet."
           : formatRepoBriefing(briefing, spots);
 
       return {
@@ -67,8 +77,8 @@ export function registerDossierResources(server: McpServer) {
     "hotspots",
     "dossier://hotspots",
     {
-      title: "Hotspots do repositório",
-      description: "Arquivos com maior churn × complexidade.",
+      title: "Repository hotspots",
+      description: "Files with the highest churn × complexity.",
       mimeType: "text/plain",
     },
     async (uri) => {

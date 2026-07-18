@@ -5,32 +5,30 @@ import { getIndex } from "../index/get.js";
 import { coupledFiles, type CoupledFile } from "../analysis/coupling.js";
 import { coupledLine } from "./format.js";
 
-// Denso de propósito: cada token de saída custa contexto do modelo.
+// Deliberately dense: every output token costs model context.
 export function formatCoupled(target: string, results: CoupledFile[]): string {
   if (results.length === 0) {
-    return `Nenhum arquivo muda junto com ${target} de forma consistente.`;
+    return `No file changes consistently with ${target}.`;
   }
 
   const lines = results.map((result) => `  ${coupledLine(result)}`);
 
-  return [`${target} historicamente muda junto com:`, ...lines].join("\n");
+  return [`${target} historically changes together with:`, ...lines].join("\n");
 }
 
 export function registerCoupledFiles(server: McpServer) {
   server.registerTool(
     "coupled_files",
     {
-      title: "Arquivos que mudam junto",
+      title: "Files that change together",
       description:
-        "Dado um arquivo, mostra quais outros arquivos historicamente mudam junto com ele (acoplamento temporal). Útil para descobrir dependências que o código não declara.",
+        "Given a file, shows which other files have historically changed together with it (temporal coupling). Useful for finding dependencies the code doesn't declare.",
       inputSchema: {
-        path: z
-          .string()
-          .describe("Caminho do arquivo, relativo à raiz do repositório"),
+        path: z.string().describe("File path, relative to the repository root"),
         limit: z
           .number()
           .optional()
-          .describe("Quantos resultados no máximo (padrão: 10)"),
+          .describe("Maximum number of results (default: 10)"),
       },
     },
     async ({ path, limit }) => {

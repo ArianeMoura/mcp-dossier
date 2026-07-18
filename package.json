@@ -1,8 +1,15 @@
 {
   "name": "mcp-dossier",
   "version": "0.0.1",
-  "description": "Inteligência arqueológica sobre um repositório git, via MCP. Não executa ações no seu código — responde perguntas sobre a história dele.",
+  "description": "Archaeological intelligence about a git repository, over MCP. It doesn't act on your code — it answers questions about its history.",
   "type": "module",
+  "author": "Ariane Moura",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ArianeMoura/mcp-dossier.git"
+  },
+  "homepage": "https://github.com/ArianeMoura/mcp-dossier#readme",
+  "bugs": "https://github.com/ArianeMoura/mcp-dossier/issues",
   "bin": {
     "mcp-dossier": "dist/index.js"
   },
@@ -18,7 +25,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "mcp",

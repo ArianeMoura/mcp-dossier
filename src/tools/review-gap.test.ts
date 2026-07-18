@@ -8,13 +8,13 @@ const gaps: GapSuggestion[] = [
 ];
 
 describe("formatReviewGap", () => {
-  it("mostra o esquecido com %, evidência e o arquivo que o puxou", () => {
+  it("shows the forgotten file with %, evidence and the file that pulled it", () => {
     const out = formatReviewGap(gaps);
     expect(out).toContain("82% (9x) auth.test.ts");
     expect(out).toContain("auth.ts");
   });
 
-  it("sem lacunas: mensagem clara, não texto vazio", () => {
+  it("no gaps: clear message, not empty text", () => {
     const out = formatReviewGap([]);
     expect(out.length).toBeGreaterThan(0);
     expect(out).not.toContain("%");

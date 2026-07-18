@@ -2,7 +2,7 @@ import { runGit } from "./run.js";
 
 const lines = (out: string) => out.split("\n").filter(Boolean);
 
-// A branch padrão do remoto (ex.: "main"), ou null se não houver origin/HEAD.
+// The remote's default branch (e.g. "main"), or null if origin/HEAD is unset.
 async function originDefault(repoPath: string): Promise<string | null> {
   try {
     const ref = await runGit(repoPath, [
@@ -15,22 +15,22 @@ async function originDefault(repoPath: string): Promise<string | null> {
   }
 }
 
-// O commit-base: onde a branch atual divergiu da branch padrão. Se nada servir,
-// cai para HEAD (aí o diff pega só o que não foi commitado).
+// The base commit: where the current branch diverged from the default branch.
+// Falls back to HEAD, so the diff then covers only uncommitted work.
 async function findBase(repoPath: string): Promise<string> {
   for (const ref of [await originDefault(repoPath), "main", "master"]) {
     if (!ref) continue;
     try {
       return (await runGit(repoPath, ["merge-base", "HEAD", ref])).trim();
     } catch {
-      // branch não existe aqui; tenta a próxima
+      // branch doesn't exist here; try the next candidate
     }
   }
   return "HEAD";
 }
 
-// Os arquivos que a mudança atual tocou: commits desta branch desde a base MAIS
-// o que ainda não foi commitado (working tree e arquivos novos).
+// Files touched by the current change: this branch's commits since the base,
+// plus anything not yet committed (working tree and new files).
 export async function changedFiles(repoPath: string): Promise<string[]> {
   const base = await findBase(repoPath);
 

@@ -4,6 +4,6 @@ dist/
 .DS_Store
 .vscode/
 
-# Config de desenvolvimento local (aponta para o build local, caminho da máquina).
-# O config para o usuário final (via npx) vai no README na fase de publicação.
+# Local dev config (points at the local build, machine-specific path).
+# The end-user config (via npx) lives in the README.
 .mcp.json

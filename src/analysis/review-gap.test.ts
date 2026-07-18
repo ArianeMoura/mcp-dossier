@@ -15,7 +15,7 @@ function commit(hash: string, paths: string[]): Commit {
   };
 }
 
-// auth.ts (4 mudanças): auth.test.ts junto 3x (0.75), session.ts junto 2x (0.5).
+// auth.ts (4 changes): auth.test.ts with it 3x (0.75), session.ts 2x (0.5).
 const index = buildIndex([
   commit("c1", ["auth.ts", "auth.test.ts"]),
   commit("c2", ["auth.ts", "auth.test.ts"]),
@@ -24,14 +24,14 @@ const index = buildIndex([
 ]);
 
 describe("reviewGap", () => {
-  it("sugere o que muda junto e você não tocou", () => {
+  it("suggests what changes together and you did not touch", () => {
     const paths = reviewGap(index, ["auth.ts"]).map((g) => g.path);
     expect(paths).toContain("auth.test.ts");
     expect(paths).toContain("session.ts");
   });
 
-  it("SUBTRAI o que você já mexeu", () => {
-    // mexeu em auth.ts E auth.test.ts → auth.test.ts não é lacuna
+  it("SUBTRACTS what you already changed", () => {
+    // touched auth.ts AND auth.test.ts → auth.test.ts is not a gap
     const paths = reviewGap(index, ["auth.ts", "auth.test.ts"]).map(
       (g) => g.path,
     );
@@ -39,32 +39,32 @@ describe("reviewGap", () => {
     expect(paths).toContain("session.ts");
   });
 
-  it("ranqueia pela força do acoplamento", () => {
+  it("ranks by coupling strength", () => {
     expect(reviewGap(index, ["auth.ts"])[0].path).toBe("auth.test.ts"); // 0.75 > 0.5
   });
 
-  it("diz por causa de qual arquivo alterado a sugestão veio", () => {
+  it("says which changed file surfaced the suggestion", () => {
     const g = reviewGap(index, ["auth.ts"]).find(
       (x) => x.path === "auth.test.ts",
     );
     expect(g?.relatedTo).toBe("auth.ts");
   });
 
-  it("tudo já tocado → nenhuma lacuna", () => {
+  it("everything already touched → no gaps", () => {
     expect(reviewGap(index, ["auth.ts", "auth.test.ts", "session.ts"])).toEqual(
       [],
     );
   });
 
-  it("arquivo alterado sem histórico de acoplamento → []", () => {
-    expect(reviewGap(index, ["arquivo-novo.ts"])).toEqual([]);
+  it("a changed file with no coupling history → []", () => {
+    expect(reviewGap(index, ["brand-new.ts"])).toEqual([]);
   });
 
-  it("nada alterado → []", () => {
+  it("nothing changed → []", () => {
     expect(reviewGap(index, [])).toEqual([]);
   });
 
-  it("mesmo esquecido puxado por dois: fica a MAIOR força", () => {
+  it("same forgotten file surfaced by two: keep the STRONGEST", () => {
     // a.ts→shared 1.0 (2/2); b.ts→shared 0.5 (2/4)
     const idx = buildIndex([
       commit("x1", ["a.ts", "shared.ts"]),
@@ -77,7 +77,7 @@ describe("reviewGap", () => {
     const g = reviewGap(idx, ["a.ts", "b.ts"]).find(
       (x) => x.path === "shared.ts",
     );
-    expect(g?.strength).toBe(1); // o vínculo forte (a.ts), não o fraco (b.ts)
+    expect(g?.strength).toBe(1); // the strong link (a.ts), not the weak (b.ts)
     expect(g?.relatedTo).toBe("a.ts");
   });
 });

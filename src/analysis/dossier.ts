@@ -29,7 +29,7 @@ export function buildFileDossier(
   const commits = index.byFile.get(path) ?? [];
   if (commits.length === 0) return null;
 
-  // byFile vem do mais novo para o mais antigo.
+  // byFile is newest first.
   const lastChange = commits[0].date;
   const firstChange = commits[commits.length - 1].date;
   const days = (d: Date) =>

@@ -15,16 +15,16 @@ const exists = (path: string) =>
 
 export function formatReviewGap(gaps: GapSuggestion[]): string {
   if (gaps.length === 0) {
-    return "Nenhuma lacuna óbvia: o que você mexeu não costuma arrastar outros arquivos.";
+    return "No obvious gap: what you changed doesn't usually pull other files along.";
   }
 
   const lines = gaps.map(
     (g) =>
-      `  ${Math.round(g.strength * 100)}% (${g.coChanges}x) ${g.path} — junto de ${g.relatedTo}`,
+      `  ${Math.round(g.strength * 100)}% (${g.coChanges}x) ${g.path} — with ${g.relatedTo}`,
   );
 
   return [
-    "Costumam mudar junto com o que você mexeu, e você não tocou:",
+    "Usually change together with what you touched, and you didn't:",
     "",
     ...lines,
   ].join("\n");
@@ -34,14 +34,14 @@ export function registerReviewGap(server: McpServer) {
   server.registerTool(
     "review_gap",
     {
-      title: "O que eu esqueci de tocar",
+      title: "What I forgot to touch",
       description:
-        "Dada a mudança atual da branch, aponta os arquivos que historicamente mudam junto com o que você alterou e que você ainda não tocou. Use antes de abrir o PR.",
+        "Given the branch's current change, points out the files that historically change together with what you edited and that you haven't touched yet. Use before opening the PR.",
       inputSchema: {
         limit: z
           .number()
           .optional()
-          .describe("Quantas sugestões no máximo (padrão: 10)"),
+          .describe("Maximum number of suggestions (default: 10)"),
       },
     },
     async ({ limit }) => {
@@ -51,7 +51,7 @@ export function registerReviewGap(server: McpServer) {
       if (changed.length === 0) {
         return {
           content: [
-            { type: "text", text: "Nenhuma mudança detectada nesta branch." },
+            { type: "text", text: "No changes detected on this branch." },
           ],
         };
       }
@@ -59,7 +59,7 @@ export function registerReviewGap(server: McpServer) {
       const index = await getIndex(cwd);
       const gaps = reviewGap(index, changed);
 
-      // Descarta esquecidos que não existem mais (acoplamento com arquivo deletado).
+      // Drop forgotten files that no longer exist (coupling with a deleted file).
       const alive = [];
       for (const g of gaps) {
         if (await exists(join(cwd, g.path))) alive.push(g);

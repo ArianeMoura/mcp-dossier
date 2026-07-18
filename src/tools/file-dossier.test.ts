@@ -26,55 +26,55 @@ const d: FileDossier = {
 };
 
 describe("formatFileDossier", () => {
-  it("começa pelo caminho do arquivo", () => {
+  it("starts with the file path", () => {
     expect(formatFileDossier(d)).toContain("src/git/run.ts");
   });
 
-  it("resume os fatos: commits, autores e idade", () => {
+  it("summarizes the facts: commits, authors and age", () => {
     const out = formatFileDossier(d);
     expect(out).toContain("4 commits");
-    expect(out).toContain("2 autores");
-    expect(out).toContain("15d"); // criado há
-    expect(out).toContain("2d"); // último toque há
+    expect(out).toContain("2 authors");
+    expect(out).toContain("15d"); // first touched
+    expect(out).toContain("2d"); // last touched
   });
 
-  it("mostra o risco com a proporção de bugfix já em %", () => {
+  it("shows risk with the bugfix ratio already in %", () => {
     const out = formatFileDossier(d);
-    expect(out).toContain("risco 4.0");
+    expect(out).toContain("risk 4.0");
     expect(out).toContain("25% bugfix");
   });
 
-  it("lista os donos com nome, email e conhecimento arredondado", () => {
+  it("lists owners with name, email and rounded knowledge", () => {
     const out = formatFileDossier(d);
     expect(out).toContain("Ariane Moura");
     expect(out).toContain("<ariane@x.com>");
     expect(out).toContain("140");
-    expect(out).toContain("13"); // 12.5 arredondado
+    expect(out).toContain("13"); // 12.5 rounded
   });
 
-  it("lista os acoplados no mesmo formato da coupled_files", () => {
+  it("lists coupled files in the same format as coupled_files", () => {
     expect(formatFileDossier(d)).toContain("100% (3x) src/git/commits.ts");
   });
 
-  it("lista os assuntos dos commits recentes", () => {
+  it("lists the subjects of recent commits", () => {
     const out = formatFileDossier(d);
     expect(out).toContain("refactor: trim comments");
     expect(out).toContain("feat: add git log adapter");
   });
 
-  it("usa o singular quando há só um autor", () => {
+  it("uses the singular when there is only one author", () => {
     const out = formatFileDossier({
       ...d,
       risk: { ...d.risk, authorCount: 1 },
     });
-    expect(out).toContain("1 autor ");
-    expect(out).not.toContain("1 autores");
+    expect(out).toContain("1 author ");
+    expect(out).not.toContain("1 authors");
   });
 
-  it("omite seções vazias em vez de imprimir cabeçalho solto", () => {
-    const vazio = formatFileDossier({ ...d, coupled: [], owners: [] });
-    expect(vazio).not.toContain("Muda junto com");
-    expect(vazio).not.toContain("Quem conhece");
-    expect(vazio).toContain("src/git/run.ts"); // mas o resto continua
+  it("omits empty sections instead of printing a lone header", () => {
+    const empty = formatFileDossier({ ...d, coupled: [], owners: [] });
+    expect(empty).not.toContain("Changes together with");
+    expect(empty).not.toContain("Who knows it");
+    expect(empty).toContain("src/git/run.ts"); // the rest still shows
   });
 });
