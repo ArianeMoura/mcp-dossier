@@ -31,8 +31,8 @@ export function registerCoupledFiles(server: McpServer) {
           .describe("Maximum number of results (default: 10)"),
       },
     },
-    async ({ path, limit }) => {
-      const index = await getIndex(process.cwd());
+    async ({ path, limit }, { signal }) => {
+      const index = await getIndex(process.cwd(), { signal });
       const results = coupledFiles(index, path).slice(0, limit ?? 10);
       return {
         content: [{ type: "text", text: formatCoupled(path, results) }],

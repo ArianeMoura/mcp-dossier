@@ -30,8 +30,11 @@ export function registerHotspots(server: McpServer) {
           .describe("Maximum number of hotspots (default: 10)"),
       },
     },
-    async ({ limit }) => {
-      const spots = (await hotspots(process.cwd())).slice(0, limit ?? 10);
+    async ({ limit }, { signal }) => {
+      const spots = (await hotspots(process.cwd(), { signal })).slice(
+        0,
+        limit ?? 10,
+      );
       return { content: [{ type: "text", text: formatHotspots(spots) }] };
     },
   );

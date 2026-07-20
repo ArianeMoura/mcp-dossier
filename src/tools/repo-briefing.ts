@@ -45,8 +45,8 @@ export function registerRepoBriefing(server: McpServer) {
         "Overview of the repository: volume, time span, top contributors and where complexity concentrates. Use when joining a project you don't know.",
       inputSchema: {},
     },
-    async () => {
-      const index = await getIndex(process.cwd());
+    async (_args, { signal }) => {
+      const index = await getIndex(process.cwd(), { signal });
       const briefing = buildRepoBriefing(index);
 
       if (briefing.totalCommits === 0) {
@@ -55,7 +55,7 @@ export function registerRepoBriefing(server: McpServer) {
         };
       }
 
-      const spots = (await hotspots(process.cwd())).slice(0, 5);
+      const spots = (await hotspots(process.cwd(), { signal })).slice(0, 5);
       return {
         content: [{ type: "text", text: formatRepoBriefing(briefing, spots) }],
       };

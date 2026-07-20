@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { getIndex } from "../index/get.js";
+import type { GitOptions } from "../git/run.js";
 import type { RepoIndex } from "../index/build.js";
 
 // Indentation complexity: average leading whitespace of non-blank lines. A
@@ -65,8 +66,11 @@ export function isNoise(path: string): boolean {
 }
 
 // Impure wrapper: reads files from disk and ranks them, skipping noise.
-export async function hotspots(repoPath: string): Promise<Hotspot[]> {
-  const index = await getIndex(repoPath);
+export async function hotspots(
+  repoPath: string,
+  opts: GitOptions = {},
+): Promise<Hotspot[]> {
+  const index = await getIndex(repoPath, opts);
 
   const contents = new Map<string, string | null>();
   await Promise.all(
@@ -74,9 +78,15 @@ export async function hotspots(repoPath: string): Promise<Hotspot[]> {
       .filter((path) => !isNoise(path))
       .map(async (path) => {
         try {
-          contents.set(path, await readFile(join(repoPath, path), "utf8"));
+          contents.set(
+            path,
+            await readFile(join(repoPath, path), {
+              encoding: "utf8",
+              signal: opts.signal,
+            }),
+          );
         } catch {
-          contents.set(path, null); // gone from the working tree
+          contents.set(path, null); // gone from the working tree, or aborted
         }
       }),
   );

@@ -66,8 +66,8 @@ export function registerFileDossier(server: McpServer) {
         path: z.string().describe("File path, relative to the repository root"),
       },
     },
-    async ({ path }) => {
-      const index = await getIndex(process.cwd());
+    async ({ path }, { signal }) => {
+      const index = await getIndex(process.cwd(), { signal });
       const dossier = buildFileDossier(index, path, new Date());
 
       if (dossier === null) {

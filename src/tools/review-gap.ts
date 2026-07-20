@@ -44,9 +44,9 @@ export function registerReviewGap(server: McpServer) {
           .describe("Maximum number of suggestions (default: 10)"),
       },
     },
-    async ({ limit }) => {
+    async ({ limit }, { signal }) => {
       const cwd = process.cwd();
-      const changed = await changedFiles(cwd);
+      const changed = await changedFiles(cwd, { signal });
 
       if (changed.length === 0) {
         return {
@@ -56,14 +56,15 @@ export function registerReviewGap(server: McpServer) {
         };
       }
 
-      const index = await getIndex(cwd);
+      const index = await getIndex(cwd, { signal });
       const gaps = reviewGap(index, changed);
 
-      // Drop forgotten files that no longer exist (coupling with a deleted file).
-      const alive = [];
-      for (const g of gaps) {
-        if (await exists(join(cwd, g.path))) alive.push(g);
-      }
+      // Drop forgotten files that no longer exist (coupling with a deleted
+      // file). Probe existence in parallel — the list can be long.
+      const present = await Promise.all(
+        gaps.map((g) => exists(join(cwd, g.path))),
+      );
+      const alive = gaps.filter((_, i) => present[i]);
 
       const top = alive.slice(0, limit ?? 10);
       return { content: [{ type: "text", text: formatReviewGap(top) }] };
