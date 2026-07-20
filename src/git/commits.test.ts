@@ -67,4 +67,15 @@ describe("parseLog", () => {
   it("returns an empty list for empty input", () => {
     expect(parseLog("")).toEqual([]);
   });
+
+  it("skips a block whose header is missing fields (no crash)", () => {
+    const good = `${RS}h${US}Ana${US}ana@x.com${US}2026-01-02T10:00:00Z${US}fix\n`;
+    const truncated = `${RS}h2${US}Bia`; // only 2 of 5 fields
+    expect(parseLog(`${good}\n${truncated}`)).toHaveLength(1);
+  });
+
+  it("skips a block with an unparseable date", () => {
+    const bad = `${RS}h${US}Ana${US}ana@x.com${US}not-a-date${US}fix\n`;
+    expect(parseLog(bad)).toEqual([]);
+  });
 });

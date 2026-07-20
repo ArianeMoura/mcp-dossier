@@ -27,11 +27,17 @@ export function buildFileDossier(
   now: Date,
 ): FileDossier | null {
   const commits = index.byFile.get(path) ?? [];
-  if (commits.length === 0) return null;
 
   // byFile is newest first.
-  const lastChange = commits[0].date;
-  const firstChange = commits[commits.length - 1].date;
+  const newest = commits[0];
+  const oldest = commits[commits.length - 1];
+  if (!newest || !oldest) return null;
+
+  const risk = fileRisk(index, path, now);
+  if (risk === null) return null; // unreachable given the guard above
+
+  const lastChange = newest.date;
+  const firstChange = oldest.date;
   const days = (d: Date) =>
     Math.floor((now.getTime() - d.getTime()) / MS_PER_DAY);
 
@@ -42,7 +48,7 @@ export function buildFileDossier(
     lastChange,
     daysSinceFirstChange: days(firstChange),
     daysSinceLastChange: days(lastChange),
-    risk: fileRisk(index, path, now)!,
+    risk,
     owners: fileOwnership(index, path, now).slice(0, MAX_OWNERS),
     coupled: coupledFiles(index, path).slice(0, MAX_COUPLED),
     recentSubjects: commits.slice(0, MAX_SUBJECTS).map((c) => c.subject),

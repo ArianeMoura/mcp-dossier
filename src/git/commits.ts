@@ -23,31 +23,47 @@ export type Commit = {
   files: FileChange[];
 };
 
+// One RS-delimited block → a Commit, or null if the header is malformed
+// (missing fields or an unparseable date). Skipping beats crashing the scan on
+// a single bad block.
+function parseCommit(part: string): Commit | null {
+  const lines = part.split("\n").filter(Boolean);
+  const header = lines[0];
+  if (header === undefined) return null;
+
+  const [hash, author, email, date, subject] = header.split(US);
+  if (
+    hash === undefined ||
+    author === undefined ||
+    email === undefined ||
+    date === undefined ||
+    subject === undefined
+  ) {
+    return null;
+  }
+
+  const parsedDate = new Date(date);
+  if (Number.isNaN(parsedDate.getTime())) return null;
+
+  const files: FileChange[] = [];
+  for (const line of lines.slice(1)) {
+    const [added, removed, path] = line.split("\t");
+    if (path === undefined) continue; // not a numstat line
+    files.push({
+      path,
+      added: Number(added) || 0, // numstat shows "-" for binary files → 0
+      removed: Number(removed) || 0,
+    });
+  }
+
+  return { hash, author, email, date: parsedDate, subject, files };
+}
+
 export function parseLog(raw: string): Commit[] {
   return raw
     .split(RS)
     .map((part) => part.trim())
     .filter(Boolean)
-    .map((part) => {
-      const lines = part.split("\n").filter(Boolean);
-      const fields = lines[0].split(US);
-
-      const files = lines.slice(1).map((line) => {
-        const [added, removed, path] = line.split("\t");
-        return {
-          path,
-          added: Number(added) || 0, // numstat shows "-" for binary files → 0
-          removed: Number(removed) || 0,
-        };
-      });
-
-      return {
-        hash: fields[0],
-        author: fields[1],
-        email: fields[2],
-        date: new Date(fields[3]),
-        subject: fields[4],
-        files,
-      };
-    });
+    .map(parseCommit)
+    .filter((commit): commit is Commit => commit !== null);
 }

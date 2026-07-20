@@ -23,7 +23,8 @@ export function fileRisk(
 ): RiskProfile | null {
   const commits = index.byFile.get(path) ?? [];
 
-  if (commits.length === 0) {
+  const newest = commits[0]; // byFile is newest first
+  if (newest === undefined) {
     return null;
   }
 
@@ -35,7 +36,7 @@ export function fileRisk(
 
   const authorCount = new Set(commits.map((commit) => commit.email)).size;
 
-  const recency = decayWeight(commits[0].date, now, opts.halfLifeMonths);
+  const recency = decayWeight(newest.date, now, opts.halfLifeMonths);
 
   const score = churn * (1 + bugfixRatio) * authorCount * recency;
 

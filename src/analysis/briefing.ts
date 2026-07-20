@@ -34,12 +34,17 @@ export function buildRepoBriefing(index: RepoIndex): RepoBriefing {
     .sort((a, b) => b.commits - a.commits)
     .slice(0, MAX_AUTHORS);
 
+  // commits is newest first.
+  const newest = commits[0];
+  const oldest = commits[commits.length - 1];
+
   return {
     totalCommits: commits.length,
+    // byFile keys every path ever touched, including deleted ones — this is the
+    // historical file count, not the current working-tree count.
     fileCount: index.byFile.size,
-    // commits is newest first.
-    firstCommit: commits.length ? commits[commits.length - 1].date : null,
-    lastCommit: commits.length ? commits[0].date : null,
+    firstCommit: oldest?.date ?? null,
+    lastCommit: newest?.date ?? null,
     topAuthors,
   };
 }
