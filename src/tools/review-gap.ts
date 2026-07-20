@@ -1,11 +1,11 @@
 import { access } from "node:fs/promises";
 import { join } from "node:path";
-import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { getIndex } from "../index/get.js";
 import { changedFiles } from "../git/diff.js";
 import { reviewGap, type GapSuggestion } from "../analysis/review-gap.js";
+import { limitSchema } from "./schema.js";
 
 const exists = (path: string) =>
   access(path).then(
@@ -38,10 +38,7 @@ export function registerReviewGap(server: McpServer) {
       description:
         "Given the branch's current change, points out the files that historically change together with what you edited and that you haven't touched yet. Use before opening the PR.",
       inputSchema: {
-        limit: z
-          .number()
-          .optional()
-          .describe("Maximum number of suggestions (default: 10)"),
+        limit: limitSchema("suggestions", 10),
       },
     },
     async ({ limit }, { signal }) => {

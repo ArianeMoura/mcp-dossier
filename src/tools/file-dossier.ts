@@ -1,9 +1,9 @@
-import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { getIndex } from "../index/get.js";
 import { buildFileDossier, type FileDossier } from "../analysis/dossier.js";
 import { coupledLine } from "./format.js";
+import { pathSchema } from "./schema.js";
 
 const authorLabel = (n: number) => `${n} ${n === 1 ? "author" : "authors"}`;
 
@@ -63,7 +63,7 @@ export function registerFileDossier(server: McpServer) {
       description:
         "Everything the repository's history knows about a file: risk, who understands it, what changes with it, and what's been happening. Use before touching a file you don't know.",
       inputSchema: {
-        path: z.string().describe("File path, relative to the repository root"),
+        path: pathSchema,
       },
     },
     async ({ path }, { signal }) => {

@@ -1,7 +1,7 @@
-import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { hotspots, type Hotspot } from "../analysis/hotspot.js";
+import { limitSchema } from "./schema.js";
 
 export function formatHotspots(spots: Hotspot[]): string {
   if (spots.length === 0) {
@@ -24,10 +24,7 @@ export function registerHotspots(server: McpServer) {
       description:
         "The files that change the most and are the most complex (churn × complexity). Where bugs concentrate and refactoring pays off most.",
       inputSchema: {
-        limit: z
-          .number()
-          .optional()
-          .describe("Maximum number of hotspots (default: 10)"),
+        limit: limitSchema("hotspots", 10),
       },
     },
     async ({ limit }, { signal }) => {
