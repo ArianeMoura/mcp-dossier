@@ -32,6 +32,10 @@ client at `npx`:
 }
 ```
 
+One optional knob: `MCP_DOSSIER_GIT_TIMEOUT_MS` caps any single git call
+(default `15000`). A git process that outlives it is killed, so a request can't
+hang the server.
+
 ## Tools
 
 | tool            | answers                                        |
@@ -71,11 +75,21 @@ heuristic:
 These are proxies, not science: the bugfix regex is naive, indentation misreads
 flat or data-heavy files, and the thresholds are arbitrary.
 
+## Privacy
+
+Output includes commit author names and emails, read from `git log` — the same
+data already public in the repository, used only to attribute ownership and
+activity. Nothing is logged, nothing leaves the machine (no network calls), and
+state lives only in an in-memory index for the session.
+
 ## Development
+
+Requires Node ≥ 20.12.
 
 ```sh
 npm install
 npm run build
+npm run lint
 npm test
 ```
 
