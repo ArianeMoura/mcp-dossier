@@ -57,8 +57,7 @@ export function registerReviewGap(server: McpServer) {
       const index = await getIndex(cwd, { signal });
       const gaps = reviewGap(index, changed);
 
-      // Drop forgotten files that no longer exist (coupling with a deleted
-      // file). Probe existence in parallel — the list can be long.
+      // Drop coupled files that were since deleted; probe in parallel.
       const present = await Promise.all(
         gaps.map((g) => exists(join(cwd, g.path))),
       );

@@ -10,10 +10,12 @@ export function monthsBetween(from: Date, to: Date): number {
 }
 
 // Weight in [0, 1]: 1 if `date` is now, halving every `halfLifeMonths` of age.
+// Clamped at 1 so a future date (clock skew) can't weigh more than "now".
 export function decayWeight(
   date: Date,
   now: Date,
   halfLifeMonths = HALF_LIFE_MONTHS,
 ): number {
-  return Math.pow(0.5, monthsBetween(date, now) / halfLifeMonths);
+  const weight = Math.pow(0.5, monthsBetween(date, now) / halfLifeMonths);
+  return Math.min(weight, 1);
 }

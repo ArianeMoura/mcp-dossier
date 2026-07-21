@@ -7,7 +7,7 @@ export type CoupledFile = {
 };
 
 // A commit larger than this is a tsunami (prettier, mass rename, merge): it
-// creates false coupling between everything. Heuristic threshold, documented.
+// creates false coupling between everything.
 const MAX_COMMIT_FILES = 30;
 // A pair seen fewer times than this is noise, not signal.
 const MIN_CO_CHANGES = 2;

@@ -23,9 +23,8 @@ export type Commit = {
   files: FileChange[];
 };
 
-// One RS-delimited block → a Commit, or null if the header is malformed
-// (missing fields or an unparseable date). Skipping beats crashing the scan on
-// a single bad block.
+// One block → a Commit, or null if the header is malformed — skipping a bad
+// block beats crashing the whole scan.
 function parseCommit(part: string): Commit | null {
   const lines = part.split("\n").filter(Boolean);
   const header = lines[0];

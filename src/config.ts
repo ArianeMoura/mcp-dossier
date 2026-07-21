@@ -1,9 +1,7 @@
 import { z } from "zod";
 
-// Environment configuration. Validated once and memoized; invalid values fail
-// loud at startup instead of silently degrading at request time.
+// Bad values fail at startup, not mid-request.
 const EnvSchema = z.object({
-  // Wall-clock ceiling for any single git invocation (ms).
   MCP_DOSSIER_GIT_TIMEOUT_MS: z.coerce
     .number()
     .int()
@@ -28,13 +26,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
 
 let cached: Config | null = null;
 
-// Lazily validated on first use, then reused. index.ts calls this at startup so
-// a bad env surfaces before the transport connects.
 export function getConfig(): Config {
   return (cached ??= loadConfig());
 }
 
-// Test hook: forget the memoized config so the next getConfig() re-reads env.
+// Lets tests re-read env on the next getConfig().
 export function resetConfig(): void {
   cached = null;
 }

@@ -34,7 +34,7 @@ async function main(): Promise<void> {
   const server = createServer();
   const transport = new StdioServerTransport();
 
-  // Close the transport once on the way out, regardless of who triggered it.
+  // Close once, whoever triggers it.
   let closing = false;
   const shutdown = async (reason: string) => {
     if (closing) return;

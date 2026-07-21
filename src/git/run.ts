@@ -3,15 +3,13 @@ import { spawn } from "node:child_process";
 import { getConfig } from "../config.js";
 import { LOG_FORMAT, parseLog, type Commit } from "./commits.js";
 
-// Options shared by every git-touching function: an AbortSignal to cancel in
-// flight (wired to the MCP request), and a per-call timeout override.
+// Cancellation + timeout, threaded through every git-touching function.
 export type GitOptions = { signal?: AbortSignal; timeoutMs?: number };
 
 // Runs git in a repo and returns stdout. The only function that does I/O here.
 // spawn (not exec): no buffer ceiling for large output, and no shell — args are
 // passed literally, so a path with a space or `;` can't become another command.
-// A hung git (credential/GPG prompt, pathological repo) is killed on timeout or
-// when the caller aborts, so a request can never block the server forever.
+// A hung or slow git is killed on timeout or abort, so it can't block forever.
 export function runGit(
   repoPath: string,
   args: string[],

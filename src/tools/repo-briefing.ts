@@ -10,8 +10,7 @@ const isoDay = (d: Date) => d.toISOString().slice(0, 10);
 export function formatRepoBriefing(b: RepoBriefing, spots: Hotspot[]): string {
   const parts: string[] = [];
 
-  // Callers only format a non-empty briefing, so the dates are present; guard
-  // anyway and drop the span if they aren't, rather than asserting.
+  // Caller only formats a non-empty briefing; guard the dates instead of asserting.
   const span =
     b.firstCommit && b.lastCommit
       ? ` · ${isoDay(b.firstCommit)} to ${isoDay(b.lastCommit)}`

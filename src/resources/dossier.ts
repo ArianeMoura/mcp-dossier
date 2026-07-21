@@ -25,7 +25,7 @@ function safeDecode(value: string): string {
 }
 
 export function registerDossierResources(server: McpServer) {
-  // dossier://file/{+path} — {+path} captures slashes (src/git/run.ts).
+  // {+path} captures slashes, so a nested path like src/git/run.ts stays whole.
   server.registerResource(
     "file-dossier",
     new ResourceTemplate("dossier://file/{+path}", { list: undefined }),

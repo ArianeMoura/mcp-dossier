@@ -3,17 +3,14 @@ import type {
   ReadResourceResult,
 } from "@modelcontextprotocol/sdk/types.js";
 
-// Handlers read git history, which can fail (missing repo, hung/killed process).
-// These wrappers keep a failure inside the MCP contract: the full error goes to
-// stderr for the operator (never stdout — that's the protocol channel), and the
-// client gets a clean message instead of git's raw stderr.
+// Log the full error to stderr (never stdout — the protocol channel), and hand
+// the client a clean message instead of git's raw stderr.
 
 function logFailure(kind: string, name: string, err: unknown): void {
   console.error(`[mcp-dossier] ${kind} ${name} failed:`, err);
 }
 
-// Tool errors are returned in-band as an isError result, so the model sees the
-// failure and can react rather than the call throwing.
+// Returned as an isError result so the model can react instead of the call throwing.
 export function safeTool<A extends unknown[]>(
   name: string,
   handler: (...args: A) => Promise<CallToolResult>,
@@ -36,8 +33,7 @@ export function safeTool<A extends unknown[]>(
   };
 }
 
-// Resource reads have no in-band error shape, so re-throw a sanitized Error;
-// the SDK turns it into a proper protocol error without leaking git's stderr.
+// Resources have no in-band error shape — re-throw sanitized so git's stderr can't leak.
 export function safeResource<A extends unknown[]>(
   name: string,
   handler: (...args: A) => Promise<ReadResourceResult>,
