@@ -3,6 +3,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getIndex } from "../index/get.js";
 import { buildRepoBriefing, type RepoBriefing } from "../analysis/briefing.js";
 import { hotspots, type Hotspot } from "../analysis/hotspot.js";
+import { safeTool } from "../safe-handler.js";
 
 const isoDay = (d: Date) => d.toISOString().slice(0, 10);
 
@@ -45,7 +46,7 @@ export function registerRepoBriefing(server: McpServer) {
         "Overview of the repository: volume, time span, top contributors and where complexity concentrates. Use when joining a project you don't know.",
       inputSchema: {},
     },
-    async (_args, { signal }) => {
+    safeTool("repo_briefing", async (_args, { signal }) => {
       const index = await getIndex(process.cwd(), { signal });
       const briefing = buildRepoBriefing(index);
 
@@ -59,6 +60,6 @@ export function registerRepoBriefing(server: McpServer) {
       return {
         content: [{ type: "text", text: formatRepoBriefing(briefing, spots) }],
       };
-    },
+    }),
   );
 }

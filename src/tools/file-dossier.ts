@@ -3,6 +3,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getIndex } from "../index/get.js";
 import { buildFileDossier, type FileDossier } from "../analysis/dossier.js";
 import { coupledLine } from "./format.js";
+import { safeTool } from "../safe-handler.js";
 import { pathSchema } from "./schema.js";
 
 const authorLabel = (n: number) => `${n} ${n === 1 ? "author" : "authors"}`;
@@ -66,7 +67,7 @@ export function registerFileDossier(server: McpServer) {
         path: pathSchema,
       },
     },
-    async ({ path }, { signal }) => {
+    safeTool("file_dossier", async ({ path }, { signal }) => {
       const index = await getIndex(process.cwd(), { signal });
       const dossier = buildFileDossier(index, path, new Date());
 
@@ -81,6 +82,6 @@ export function registerFileDossier(server: McpServer) {
         };
       }
       return { content: [{ type: "text", text: formatFileDossier(dossier) }] };
-    },
+    }),
   );
 }

@@ -3,6 +3,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getIndex } from "../index/get.js";
 import { coupledFiles, type CoupledFile } from "../analysis/coupling.js";
 import { coupledLine } from "./format.js";
+import { safeTool } from "../safe-handler.js";
 import { limitSchema, pathSchema } from "./schema.js";
 
 // Deliberately dense: every output token costs model context.
@@ -28,12 +29,12 @@ export function registerCoupledFiles(server: McpServer) {
         limit: limitSchema("results", 10),
       },
     },
-    async ({ path, limit }, { signal }) => {
+    safeTool("coupled_files", async ({ path, limit }, { signal }) => {
       const index = await getIndex(process.cwd(), { signal });
       const results = coupledFiles(index, path).slice(0, limit ?? 10);
       return {
         content: [{ type: "text", text: formatCoupled(path, results) }],
       };
-    },
+    }),
   );
 }

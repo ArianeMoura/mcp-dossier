@@ -1,6 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { hotspots, type Hotspot } from "../analysis/hotspot.js";
+import { safeTool } from "../safe-handler.js";
 import { limitSchema } from "./schema.js";
 
 export function formatHotspots(spots: Hotspot[]): string {
@@ -27,12 +28,12 @@ export function registerHotspots(server: McpServer) {
         limit: limitSchema("hotspots", 10),
       },
     },
-    async ({ limit }, { signal }) => {
+    safeTool("hotspots", async ({ limit }, { signal }) => {
       const spots = (await hotspots(process.cwd(), { signal })).slice(
         0,
         limit ?? 10,
       );
       return { content: [{ type: "text", text: formatHotspots(spots) }] };
-    },
+    }),
   );
 }

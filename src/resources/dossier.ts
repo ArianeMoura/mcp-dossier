@@ -4,6 +4,7 @@ import {
 } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { getIndex } from "../index/get.js";
+import { safeResource } from "../safe-handler.js";
 
 import { buildFileDossier } from "../analysis/dossier.js";
 import { buildRepoBriefing } from "../analysis/briefing.js";
@@ -33,7 +34,7 @@ export function registerDossierResources(server: McpServer) {
       description: "The historical dossier of a file, addressable by URI.",
       mimeType: "text/plain",
     },
-    async (uri, variables, { signal }) => {
+    safeResource("file-dossier", async (uri, variables, { signal }) => {
       const path = safeDecode(String(variables.path));
       const index = await getIndex(process.cwd(), { signal });
       const dossier = buildFileDossier(index, path, new Date());
@@ -41,7 +42,7 @@ export function registerDossierResources(server: McpServer) {
         ? formatFileDossier(dossier)
         : `No commit has touched ${path}.`;
       return { contents: [{ uri: uri.href, mimeType: "text/plain", text }] };
-    },
+    }),
   );
 
   server.registerResource(
@@ -52,7 +53,7 @@ export function registerDossierResources(server: McpServer) {
       description: "Historical summary of the repository.",
       mimeType: "text/plain",
     },
-    async (uri, { signal }) => {
+    safeResource("repo-briefing", async (uri, { signal }) => {
       const index = await getIndex(process.cwd(), { signal });
       const briefing = buildRepoBriefing(index);
       const spots = (await hotspots(process.cwd(), { signal })).slice(0, 5);
@@ -71,7 +72,7 @@ export function registerDossierResources(server: McpServer) {
           },
         ],
       };
-    },
+    }),
   );
   server.registerResource(
     "hotspots",
@@ -81,7 +82,7 @@ export function registerDossierResources(server: McpServer) {
       description: "Files with the highest churn × complexity.",
       mimeType: "text/plain",
     },
-    async (uri, { signal }) => {
+    safeResource("hotspots", async (uri, { signal }) => {
       const spots = (await hotspots(process.cwd(), { signal })).slice(0, 10);
 
       return {
@@ -93,6 +94,6 @@ export function registerDossierResources(server: McpServer) {
           },
         ],
       };
-    },
+    }),
   );
 }

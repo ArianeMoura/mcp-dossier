@@ -5,6 +5,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getIndex } from "../index/get.js";
 import { changedFiles } from "../git/diff.js";
 import { reviewGap, type GapSuggestion } from "../analysis/review-gap.js";
+import { safeTool } from "../safe-handler.js";
 import { limitSchema } from "./schema.js";
 
 const exists = (path: string) =>
@@ -41,7 +42,7 @@ export function registerReviewGap(server: McpServer) {
         limit: limitSchema("suggestions", 10),
       },
     },
-    async ({ limit }, { signal }) => {
+    safeTool("review_gap", async ({ limit }, { signal }) => {
       const cwd = process.cwd();
       const changed = await changedFiles(cwd, { signal });
 
@@ -65,6 +66,6 @@ export function registerReviewGap(server: McpServer) {
 
       const top = alive.slice(0, limit ?? 10);
       return { content: [{ type: "text", text: formatReviewGap(top) }] };
-    },
+    }),
   );
 }
