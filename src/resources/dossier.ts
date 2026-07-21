@@ -16,7 +16,7 @@ import { formatHotspots } from "../tools/hotspots.js";
 
 // Best-effort decode: malformed percent-encoding falls back to the raw value
 // instead of throwing.
-function safeDecode(value: string): string {
+export function safeDecode(value: string): string {
   try {
     return decodeURIComponent(value);
   } catch {
