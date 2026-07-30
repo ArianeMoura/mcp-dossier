@@ -33,8 +33,8 @@ client at `npx`:
 ```
 
 One optional knob: `MCP_DOSSIER_GIT_TIMEOUT_MS` caps any single git call
-(default `15000`). A git process that outlives it is killed, so a request can't
-hang the server.
+(default `15000`, max `600000`). A git process that outlives it is killed, so a
+request can't hang the server.
 
 ## Tools
 
@@ -79,8 +79,13 @@ flat or data-heavy files, and the thresholds are arbitrary.
 
 Output includes commit author names and emails, read from `git log` — the same
 data already public in the repository, used only to attribute ownership and
-activity. Nothing is logged, nothing leaves the machine (no network calls), and
-state lives only in an in-memory index for the session.
+activity.
+
+Nothing leaves the machine: there are no network calls, and nothing is written
+to disk. State lives only in an in-memory index for the session. Diagnostics go
+to stderr, which your MCP client typically captures in its own log; a failing
+git command is logged there with its output, which can include absolute paths.
+The client only ever receives a sanitized message.
 
 ## Development
 
