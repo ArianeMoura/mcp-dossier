@@ -25,7 +25,15 @@ async function findBase(repoPath: string, opts: GitOptions): Promise<string> {
   for (const ref of [await originDefault(repoPath, opts), "main", "master"]) {
     if (!ref) continue;
     try {
-      return (await runGit(repoPath, ["merge-base", "HEAD", ref], opts)).trim();
+      // --end-of-options: the ref comes from repo data, and one starting with
+      // `-` would otherwise be parsed as an option.
+      return (
+        await runGit(
+          repoPath,
+          ["merge-base", "--end-of-options", "HEAD", ref],
+          opts,
+        )
+      ).trim();
     } catch {
       // branch doesn't exist here; try the next candidate
     }
@@ -42,7 +50,7 @@ export async function changedFiles(
   const base = await findBase(repoPath, opts);
 
   const [diff, untracked] = await Promise.all([
-    runGit(repoPath, ["diff", "--name-only", base], opts),
+    runGit(repoPath, ["diff", "--name-only", "--end-of-options", base], opts),
     runGit(repoPath, ["ls-files", "--others", "--exclude-standard"], opts),
   ]);
 
