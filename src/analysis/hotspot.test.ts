@@ -1,8 +1,23 @@
-import { describe, it, expect } from "vitest";
+import { mkdtemp, symlink, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
-import { indentationComplexity, rankHotspots, isNoise } from "./hotspot.js";
+import { afterEach, beforeEach, describe, it, expect } from "vitest";
+
+import {
+  hotspots,
+  indentationComplexity,
+  rankHotspots,
+  isNoise,
+} from "./hotspot.js";
 import { buildIndex } from "../index/build.js";
 import type { Commit } from "../git/commits.js";
+import {
+  commitFile,
+  git,
+  makeTmpRepo,
+  removeRepo,
+} from "../git/tmp-repo.testutil.js";
 
 const nested = [
   "function f() {", // 0
@@ -102,5 +117,63 @@ describe("isNoise", () => {
   it("does not flag real code", () => {
     expect(isNoise("src/git/run.ts")).toBe(false);
     expect(isNoise("src/lock.ts")).toBe(false); // "lock" in the name, but code
+  });
+});
+
+describe("hotspots (reads the working tree)", () => {
+  const indented = ["f() {", "  if (x) {", "    y;", "  }", "}"].join("\n");
+
+  let repo: string;
+  let outside: string;
+
+  beforeEach(async () => {
+    repo = await makeTmpRepo();
+    outside = await mkdtemp(join(tmpdir(), "dossier-outside-"));
+  });
+
+  afterEach(async () => {
+    await removeRepo(repo);
+    await removeRepo(outside);
+  });
+
+  it("ranks a real file it can read", async () => {
+    await commitFile(repo, "a.ts", indented, "feat: a");
+
+    const paths = (await hotspots(repo)).map((h) => h.path);
+
+    expect(paths).toContain("a.ts");
+  });
+
+  it("does not follow a tracked symlink out of the repository", async () => {
+    const target = join(outside, "secret.txt");
+    await writeFile(target, indented);
+    await symlink(target, join(repo, "link.ts"));
+    git(repo, "add", "link.ts");
+    git(repo, "commit", "-q", "-m", "feat: link");
+
+    const paths = (await hotspots(repo)).map((h) => h.path);
+
+    expect(paths).not.toContain("link.ts");
+  });
+
+  it("skips binary files", async () => {
+    await commitFile(
+      repo,
+      "bin.dat",
+      "a\0b\0c indented\n  more\n",
+      "feat: bin",
+    );
+
+    const paths = (await hotspots(repo)).map((h) => h.path);
+
+    expect(paths).not.toContain("bin.dat");
+  });
+
+  it("skips files past the size ceiling", async () => {
+    await commitFile(repo, "huge.ts", "  x\n".repeat(200_000), "feat: huge");
+
+    const paths = (await hotspots(repo)).map((h) => h.path);
+
+    expect(paths).not.toContain("huge.ts");
   });
 });

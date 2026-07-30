@@ -1,5 +1,5 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { lstat, readFile, realpath } from "node:fs/promises";
+import { resolve, sep } from "node:path";
 
 import { getIndex } from "../index/get.js";
 import type { GitOptions } from "../git/run.js";
@@ -65,6 +65,52 @@ export function isNoise(path: string): boolean {
   return NOISE.some((re) => re.test(path));
 }
 
+// The candidate set is every path in history: without ceilings, a monorepo opens
+// thousands of descriptors and holds the whole working tree in memory.
+const READ_CONCURRENCY = 16;
+const MAX_FILE_BYTES = 512 * 1024;
+
+// Shared cursor, so a slow file doesn't stall the others.
+async function forEachPooled<T>(
+  items: T[],
+  limit: number,
+  fn: (item: T) => Promise<void>,
+): Promise<void> {
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const item = items[next++];
+      if (item === undefined) return;
+      await fn(item);
+    }
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, worker),
+  );
+}
+
+async function readCandidate(
+  root: string,
+  path: string,
+  signal?: AbortSignal,
+): Promise<string | null> {
+  const full = resolve(root, path);
+  if (full !== root && !full.startsWith(root + sep)) return null;
+
+  try {
+    // lstat, not stat: a symlink then fails isFile() and is skipped instead of
+    // followed out of the repo.
+    const stats = await lstat(full);
+    if (!stats.isFile() || stats.size > MAX_FILE_BYTES) return null;
+
+    const content = await readFile(full, { encoding: "utf8", signal });
+    // Indentation is meaningless for binaries, and churn would overrate them.
+    return content.includes("\0") ? null : content;
+  } catch {
+    return null; // unreadable, gone from the working tree, or aborted
+  }
+}
+
 // Impure wrapper: reads files from disk and ranks them, skipping noise.
 export async function hotspots(
   repoPath: string,
@@ -72,24 +118,13 @@ export async function hotspots(
 ): Promise<Hotspot[]> {
   const index = await getIndex(repoPath, opts);
 
+  const root = await realpath(repoPath);
+  const paths = [...index.byFile.keys()].filter((path) => !isNoise(path));
+
   const contents = new Map<string, string | null>();
-  await Promise.all(
-    [...index.byFile.keys()]
-      .filter((path) => !isNoise(path))
-      .map(async (path) => {
-        try {
-          contents.set(
-            path,
-            await readFile(join(repoPath, path), {
-              encoding: "utf8",
-              signal: opts.signal,
-            }),
-          );
-        } catch {
-          contents.set(path, null); // gone from the working tree, or aborted
-        }
-      }),
-  );
+  await forEachPooled(paths, READ_CONCURRENCY, async (path) => {
+    contents.set(path, await readCandidate(root, path, opts.signal));
+  });
 
   return rankHotspots(index, (path) => contents.get(path) ?? null);
 }
