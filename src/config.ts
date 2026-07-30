@@ -1,11 +1,15 @@
 import { z } from "zod";
 
-// Bad values fail at startup, not mid-request.
+// Bad values fail at startup, not mid-request. Without the upper bound, an
+// absurd timeout silently disables the guard it configures.
+const MAX_GIT_TIMEOUT_MS = 600_000;
+
 const EnvSchema = z.object({
   MCP_DOSSIER_GIT_TIMEOUT_MS: z.coerce
     .number()
     .int()
     .positive()
+    .max(MAX_GIT_TIMEOUT_MS)
     .default(15_000),
 });
 

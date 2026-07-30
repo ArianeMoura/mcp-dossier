@@ -23,4 +23,9 @@ describe("pathSchema", () => {
   it("rejects an empty string", () => {
     expect(pathSchema.safeParse("").success).toBe(false);
   });
+
+  it("rejects a path past the length cap", () => {
+    expect(pathSchema.safeParse("a".repeat(4096)).success).toBe(true);
+    expect(pathSchema.safeParse("a".repeat(4097)).success).toBe(false);
+  });
 });

@@ -13,7 +13,13 @@ describe("loadConfig", () => {
     ).toBe(5000);
   });
 
-  it.each(["abc", "-1", "0", "1.5"])(
+  it("accepts the maximum timeout", () => {
+    expect(
+      loadConfig({ MCP_DOSSIER_GIT_TIMEOUT_MS: "600000" }).gitTimeoutMs,
+    ).toBe(600_000);
+  });
+
+  it.each(["abc", "-1", "0", "1.5", "600001"])(
     "rejects an invalid timeout: %s",
     (value) => {
       expect(() => loadConfig({ MCP_DOSSIER_GIT_TIMEOUT_MS: value })).toThrow(
