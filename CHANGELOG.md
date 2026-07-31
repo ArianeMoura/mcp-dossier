@@ -27,6 +27,8 @@ this project follows [SemVer](https://semver.org/).
   every formatter.
 - The server reported a hardcoded version on handshake instead of the one in
   `package.json`.
+- `repo_briefing` rejected a call that omitted `arguments`, which the protocol
+  allows for a tool that takes no input.
 
 ## [0.0.1] - 2026-07-30
 

@@ -1,39 +1,11 @@
 #!/usr/bin/env node
-import { createRequire } from "node:module";
-
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
 import { getConfig } from "./config.js";
-import { registerCoupledFiles } from "./tools/coupled-files.js";
-import { registerFileDossier } from "./tools/file-dossier.js";
-import { registerHotspots } from "./tools/hotspots.js";
-import { registerRepoBriefing } from "./tools/repo-briefing.js";
-import { registerReviewGap } from "./tools/review-gap.js";
-import { registerDossierResources } from "./resources/dossier.js";
-import { registerDossierPrompts } from "./prompts/dossier.js";
+import { createServer } from "./server.js";
 
 // All diagnostics go to stderr — stdout carries the MCP JSON-RPC protocol.
 const log = (message: string) => console.error(`mcp-dossier: ${message}`);
-
-// Single source: this is the version the client sees on handshake.
-const { version } = createRequire(import.meta.url)("../package.json") as {
-  version: string;
-};
-
-function createServer(): McpServer {
-  const server = new McpServer({ name: "mcp-dossier", version });
-
-  registerCoupledFiles(server);
-  registerFileDossier(server);
-  registerHotspots(server);
-  registerRepoBriefing(server);
-  registerReviewGap(server);
-  registerDossierResources(server);
-  registerDossierPrompts(server);
-
-  return server;
-}
 
 async function main(): Promise<void> {
   getConfig(); // validate env up front, before the transport connects

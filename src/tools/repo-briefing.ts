@@ -1,4 +1,7 @@
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type {
+  McpServer,
+  ToolCallback,
+} from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { getIndex } from "../index/get.js";
 import { buildRepoBriefing, type RepoBriefing } from "../analysis/briefing.js";
@@ -7,6 +10,9 @@ import { plural } from "./format.js";
 import { safeTool } from "../safe-handler.js";
 
 const isoDay = (d: Date) => d.toISOString().slice(0, 10);
+
+// What a handler receives when the tool declares no input schema.
+type ToolExtra = Parameters<ToolCallback>[0];
 
 export function formatRepoBriefing(b: RepoBriefing, spots: Hotspot[]): string {
   const parts: string[] = [];
@@ -46,9 +52,10 @@ export function registerRepoBriefing(server: McpServer) {
       title: "Just arrived, get me up to speed",
       description:
         "Overview of the repository: volume, time span, top contributors and where complexity concentrates. Use when joining a project you don't know.",
-      inputSchema: {},
+      // No inputSchema at all: an empty one rejects a call that omits
+      // `arguments`, which the protocol allows.
     },
-    safeTool("repo_briefing", async (_args, { signal }) => {
+    safeTool("repo_briefing", async ({ signal }: ToolExtra) => {
       const index = await getIndex(process.cwd(), { signal });
       const briefing = buildRepoBriefing(index);
 
