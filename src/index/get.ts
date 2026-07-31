@@ -17,9 +17,7 @@ async function currentHead(
   }
 }
 
-// Builds the index on first use and reuses the cache afterwards, rebuilding only
-// when HEAD moves. The check (`rev-parse`) is cheap; the full scan runs only when
-// there are new commits.
+// Rebuilds only when HEAD moves: `rev-parse` is cheap, the full scan isn't.
 export async function getIndex(
   repoPath: string,
   opts: GitOptions = {},

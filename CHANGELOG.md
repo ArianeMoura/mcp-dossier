@@ -5,6 +5,13 @@ this project follows [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- `@modelcontextprotocol/sdk` now requires `^1.30.0`, which allows the patched
+  `@hono/node-server` and `fast-uri`. Neither was reachable over stdio, but they
+  no longer ship in the dependency tree.
+- Development moved to ESLint 10; CI also runs on Node 24.
+
 ### Fixed
 
 - `review_gap` reported only uncommitted work when the default branch existed

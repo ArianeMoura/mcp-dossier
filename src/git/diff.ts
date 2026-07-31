@@ -21,14 +21,13 @@ async function originDefaultRef(
 }
 
 // The base commit: where the current branch diverged from the default branch.
-// The remote-tracking refs cover a clone whose origin/HEAD is unset; HEAD is the
-// last resort, and the diff then covers only uncommitted work.
+// Falling through to HEAD leaves the diff covering only uncommitted work.
 async function findBase(repoPath: string, opts: GitOptions): Promise<string> {
   const candidates = [
     await originDefaultRef(repoPath, opts),
     "main",
     "master",
-    "origin/main",
+    "origin/main", // last resort: origin/HEAD unset and no local branch
     "origin/master",
   ];
 

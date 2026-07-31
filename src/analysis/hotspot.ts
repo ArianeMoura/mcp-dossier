@@ -107,8 +107,7 @@ async function readCandidate(
     if (!stats.isFile() || stats.size > MAX_FILE_BYTES) return null;
 
     // lstat guarded only the last component; an intermediate symlink still leads
-    // outside. Safe to realpath now: the last component is a proven regular
-    // file, so only the intermediate ones resolve.
+    // outside. Safe to realpath only after it: the last component is a real file.
     const real = await realpath(full);
     if (!contains(root, real)) return null;
 
@@ -121,7 +120,7 @@ async function readCandidate(
   }
 }
 
-// Impure wrapper: reads files from disk and ranks them, skipping noise.
+// Impure counterpart of rankHotspots: reads the working tree, skips noise.
 export async function hotspots(
   repoPath: string,
   opts: GitOptions = {},

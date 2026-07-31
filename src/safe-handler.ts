@@ -43,6 +43,8 @@ export function safeResource<A extends unknown[]>(
       return await handler(...args);
     } catch (err) {
       logFailure("resource", name, err);
+      // No `cause`: it would carry git's stderr back toward the client.
+      // eslint-disable-next-line preserve-caught-error
       throw new Error(
         `Could not read the "${name}" resource from this repository's history.`,
       );
