@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { writeFile } from "node:fs/promises";
+import { mkdtemp, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { changedFiles } from "./diff.js";
@@ -11,6 +12,7 @@ import {
 } from "./tmp-repo.testutil.js";
 
 let repo: string;
+let scratch: string | null = null;
 
 beforeEach(async () => {
   repo = await makeTmpRepo();
@@ -18,6 +20,10 @@ beforeEach(async () => {
 
 afterEach(async () => {
   await removeRepo(repo);
+  if (scratch) {
+    await removeRepo(scratch);
+    scratch = null;
+  }
 });
 
 describe("changedFiles", () => {
@@ -28,6 +34,36 @@ describe("changedFiles", () => {
     await commitFile(repo, "feature.ts", "work\n", "feat: work");
 
     const changed = await changedFiles(repo);
+    expect(changed).toContain("feature.ts");
+    expect(changed).not.toContain("base.ts");
+  });
+
+  // A CI checkout or `clone --single-branch`. Falling back to HEAD here would
+  // hide every committed change.
+  it("finds the base when the default branch exists only as a remote ref", async () => {
+    await commitFile(repo, "base.ts", "base\n", "chore: base");
+
+    scratch = await mkdtemp(join(tmpdir(), "dossier-clone-"));
+    const clone = join(scratch, "work");
+    git(
+      scratch,
+      "clone",
+      "-q",
+      "--single-branch",
+      "--branch",
+      "main",
+      repo,
+      clone,
+    );
+    git(clone, "config", "user.email", "test@example.com");
+    git(clone, "config", "user.name", "Test");
+    git(clone, "config", "commit.gpgsign", "false");
+
+    git(clone, "checkout", "-q", "-b", "feature");
+    git(clone, "branch", "-q", "-D", "main");
+    await commitFile(clone, "feature.ts", "work\n", "feat: work");
+
+    const changed = await changedFiles(clone);
     expect(changed).toContain("feature.ts");
     expect(changed).not.toContain("base.ts");
   });

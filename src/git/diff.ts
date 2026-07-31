@@ -2,8 +2,9 @@ import { runGit, type GitOptions } from "./run.js";
 
 const lines = (out: string) => out.split("\n").filter(Boolean);
 
-// The remote's default branch (e.g. "main"), or null if origin/HEAD is unset.
-async function originDefault(
+// The remote's default branch, kept fully qualified: "main" alone names a local
+// branch, which a single-branch clone or a CI checkout doesn't have.
+async function originDefaultRef(
   repoPath: string,
   opts: GitOptions,
 ): Promise<string | null> {
@@ -13,16 +14,25 @@ async function originDefault(
       ["symbolic-ref", "refs/remotes/origin/HEAD"],
       opts,
     );
-    return ref.trim().replace("refs/remotes/origin/", "");
+    return ref.trim() || null;
   } catch {
     return null;
   }
 }
 
 // The base commit: where the current branch diverged from the default branch.
-// Falls back to HEAD, so the diff then covers only uncommitted work.
+// The remote-tracking refs cover a clone whose origin/HEAD is unset; HEAD is the
+// last resort, and the diff then covers only uncommitted work.
 async function findBase(repoPath: string, opts: GitOptions): Promise<string> {
-  for (const ref of [await originDefault(repoPath, opts), "main", "master"]) {
+  const candidates = [
+    await originDefaultRef(repoPath, opts),
+    "main",
+    "master",
+    "origin/main",
+    "origin/master",
+  ];
+
+  for (const ref of new Set(candidates)) {
     if (!ref) continue;
     try {
       // --end-of-options: the ref comes from repo data, and one starting with

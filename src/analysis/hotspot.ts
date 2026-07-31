@@ -89,13 +89,16 @@ async function forEachPooled<T>(
   );
 }
 
+const contains = (root: string, p: string) =>
+  p === root || p.startsWith(root + sep);
+
 async function readCandidate(
   root: string,
   path: string,
   signal?: AbortSignal,
 ): Promise<string | null> {
   const full = resolve(root, path);
-  if (full !== root && !full.startsWith(root + sep)) return null;
+  if (!contains(root, full)) return null;
 
   try {
     // lstat, not stat: a symlink then fails isFile() and is skipped instead of
@@ -103,7 +106,14 @@ async function readCandidate(
     const stats = await lstat(full);
     if (!stats.isFile() || stats.size > MAX_FILE_BYTES) return null;
 
-    const content = await readFile(full, { encoding: "utf8", signal });
+    // lstat guarded only the last component; an intermediate symlink still leads
+    // outside. Safe to realpath now: the last component is a proven regular
+    // file, so only the intermediate ones resolve.
+    const real = await realpath(full);
+    if (!contains(root, real)) return null;
+
+    // Read the resolved path, so a symlink swapped in since can't redirect it.
+    const content = await readFile(real, { encoding: "utf8", signal });
     // Indentation is meaningless for binaries, and churn would overrate them.
     return content.includes("\0") ? null : content;
   } catch {

@@ -1,4 +1,4 @@
-import { mkdtemp, symlink, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -154,6 +154,21 @@ describe("hotspots (reads the working tree)", () => {
     const paths = (await hotspots(repo)).map((h) => h.path);
 
     expect(paths).not.toContain("link.ts");
+  });
+
+  it("does not follow a symlinked directory out of the repository", async () => {
+    await writeFile(join(outside, "secret.ts"), "        deep\n".repeat(10));
+
+    // A real directory at commit time, a symlink afterwards.
+    await mkdir(join(repo, "vault"));
+    await commitFile(repo, join("vault", "secret.ts"), indented, "feat: vault");
+
+    await rm(join(repo, "vault"), { recursive: true, force: true });
+    await symlink(outside, join(repo, "vault"));
+
+    const paths = (await hotspots(repo)).map((h) => h.path);
+
+    expect(paths).not.toContain("vault/secret.ts");
   });
 
   it("skips binary files", async () => {

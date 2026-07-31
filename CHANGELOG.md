@@ -5,6 +5,16 @@ this project follows [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `review_gap` reported only uncommitted work when the default branch existed
+  solely as a remote ref — a single-branch clone, a worktree, a CI checkout. The
+  base was derived from `origin/HEAD` but stripped down to a local branch name
+  that resolved nowhere, so it silently fell back to `HEAD`.
+- `hotspots` followed a symlinked directory out of the repository. The 0.0.1
+  fix guarded the last path component only, which left an intermediate one — a
+  directory swapped for a symlink after the commit — still walking outside.
+
 ## [0.0.1] - 2026-07-30
 
 ### Added
