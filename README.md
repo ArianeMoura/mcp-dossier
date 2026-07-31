@@ -17,12 +17,12 @@ API keys and no network.
 An agent can already run `git log`. But it doesn't know _what to compute_ —
 temporal coupling, hotspots, and ownership decay each need a pass over the whole
 history — and the raw log costs tens of thousands of tokens where a dossier
-returns ~200 of signal.
+returns ~200 tokens of signal.
 
 ## Install
 
-No configuration; it analyzes the repository it's launched in. Point your MCP
-client at `npx`:
+Nothing to configure: the server analyzes whatever repository it's launched in.
+Point your MCP client at `npx`:
 
 ```json
 {
@@ -32,21 +32,24 @@ client at `npx`:
 }
 ```
 
-One optional knob: `MCP_DOSSIER_GIT_TIMEOUT_MS` caps any single git call
-(default `15000`, max `600000`). A git process that outlives it is killed, so a
-request can't hang the server.
+There is one optional knob: `MCP_DOSSIER_GIT_TIMEOUT_MS` caps any single git
+call (default `15000`, max `600000`). A git process that outlives it is killed,
+so a request can't hang the server.
 
 ## Tools
 
-| tool            | answers                                        |
-| --------------- | ---------------------------------------------- |
-| `file_dossier`  | everything the history knows about a file      |
-| `coupled_files` | what changes together with a file              |
-| `review_gap`    | what you forgot to touch on the current branch |
-| `hotspots`      | where churn and complexity concentrate         |
-| `repo_briefing` | a get-me-up-to-speed overview                  |
+| tool            | takes           | answers                                        |
+| --------------- | --------------- | ---------------------------------------------- |
+| `file_dossier`  | `path`          | everything the history knows about a file      |
+| `coupled_files` | `path`, `limit` | what changes together with a file              |
+| `review_gap`    | `limit`         | what you forgot to touch on the current branch |
+| `hotspots`      | `limit`         | where churn and complexity concentrate         |
+| `repo_briefing` | —               | a get-me-up-to-speed overview                  |
 
-Plus resources (`dossier://repo`, `dossier://file/{path}`,
+`path` is relative to the repository root; `limit` is optional, 1–100, and
+defaults to 10.
+
+Plus resources (`dossier://repo`, `dossier://file/{+path}`,
 `dossier://hotspots`) and prompts (`onboard-me`, `review-my-branch`,
 `standup`).
 
@@ -58,7 +61,7 @@ forgot:
 Usually change together with what you touched, and you didn't:
 
   100% (12x) src/auth.test.ts — with src/auth.ts
-   82% (9x)  src/session.ts — with src/auth.ts
+  82% (9x) src/session.ts — with src/auth.ts
 ```
 
 ## How it works
@@ -96,6 +99,7 @@ npm install
 npm run build
 npm run lint
 npm test
+npm run format:check
 ```
 
 To try a local build, register `node dist/index.js` in your MCP client instead
