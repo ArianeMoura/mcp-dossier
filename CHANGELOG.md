@@ -5,6 +5,8 @@ this project follows [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.0.1] - 2026-07-30
+
 ### Added
 
 - Git adapter (layer 1): reads history via `spawn`, parses with control-char
@@ -14,7 +16,7 @@ this project follows [SemVer](https://semver.org/).
   complexity), ownership with half-life decay, risk.
 - MCP tools: `coupled_files`, `file_dossier`, `hotspots`, `repo_briefing`,
   `review_gap`.
-- Resources: `dossier://repo`, `dossier://file/{path}`, `dossier://hotspots`.
+- Resources: `dossier://repo`, `dossier://file/{+path}`, `dossier://hotspots`.
 - Prompts: `onboard-me`, `review-my-branch`, `standup`.
 - `SECURITY.md` with a private reporting channel and the threat model.
 
@@ -39,3 +41,6 @@ this project follows [SemVer](https://semver.org/).
   binary limits — enough to exhaust descriptors or memory on a large repository.
 - `git` output is now capped, and `MCP_DOSSIER_GIT_TIMEOUT_MS` has an upper
   bound, so neither can silently disable the guard it configures.
+
+[unreleased]: https://github.com/ArianeMoura/mcp-dossier/compare/v0.0.1...HEAD
+[0.0.1]: https://github.com/ArianeMoura/mcp-dossier/releases/tag/v0.0.1
