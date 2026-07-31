@@ -1,6 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { hotspots, type Hotspot } from "../analysis/hotspot.js";
+import { plural } from "./format.js";
 import { safeTool } from "../safe-handler.js";
 import { limitSchema } from "./schema.js";
 
@@ -9,10 +10,10 @@ export function formatHotspots(spots: Hotspot[]): string {
     return "No hotspots found.";
   }
 
-  const lines = spots.map((spot) => {
-    const commits = spot.churn === 1 ? "commit" : "commits";
-    return `  ${spot.score.toFixed(1)}  (${spot.churn} ${commits}) ${spot.path}`;
-  });
+  const lines = spots.map(
+    (spot) =>
+      `  ${spot.score.toFixed(1)}  (${plural(spot.churn, "commit")}) ${spot.path}`,
+  );
 
   return ["Where it hurts most (churn × complexity):", "", ...lines].join("\n");
 }

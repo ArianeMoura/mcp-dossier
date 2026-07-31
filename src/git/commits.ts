@@ -4,8 +4,7 @@ export const US = "\x1f";
 export const RS = "\x1e";
 
 // `git log` format, used with --numstat. RS goes at the START of each commit so
-// that splitting the output on RS yields self-contained blocks (the header plus
-// that commit's file lines).
+// that splitting on it yields self-contained blocks.
 export const LOG_FORMAT = "%x1e%H%x1f%an%x1f%ae%x1f%aI%x1f%s";
 
 export type FileChange = {

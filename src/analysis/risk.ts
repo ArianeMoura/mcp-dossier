@@ -13,7 +13,6 @@ export type RiskProfile = {
 // Deliberately naive: matches "prefix"/"suffix" and misses non-English fixes.
 const BUGFIX_RE = /fix|bug|hotfix|revert/i;
 
-// Risk profile of a file, or null if nobody touched it.
 // score = churn × (1 + bugfixRatio) × authorCount × recency.
 export function fileRisk(
   index: RepoIndex,

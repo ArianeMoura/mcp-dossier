@@ -21,6 +21,12 @@ this project follows [SemVer](https://semver.org/).
 - `hotspots` followed a symlinked directory out of the repository. The 0.0.1
   fix guarded the last path component only, which left an intermediate one — a
   directory swapped for a symlink after the commit — still walking outside.
+- The `dossier://file/{+path}` resource applied no length bound and echoed the
+  path back, so it sidestepped the cap the equivalent tool argument enforces.
+- Counts of one no longer read "1 commits": one pluralization rule now serves
+  every formatter.
+- The server reported a hardcoded version on handshake instead of the one in
+  `package.json`.
 
 ## [0.0.1] - 2026-07-30
 

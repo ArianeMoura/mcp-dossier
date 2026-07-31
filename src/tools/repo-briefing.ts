@@ -3,6 +3,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getIndex } from "../index/get.js";
 import { buildRepoBriefing, type RepoBriefing } from "../analysis/briefing.js";
 import { hotspots, type Hotspot } from "../analysis/hotspot.js";
+import { plural } from "./format.js";
 import { safeTool } from "../safe-handler.js";
 
 const isoDay = (d: Date) => d.toISOString().slice(0, 10);
@@ -15,13 +16,15 @@ export function formatRepoBriefing(b: RepoBriefing, spots: Hotspot[]): string {
     b.firstCommit && b.lastCommit
       ? ` · ${isoDay(b.firstCommit)} to ${isoDay(b.lastCommit)}`
       : "";
-  parts.push(`${b.totalCommits} commits · ${b.fileCount} files${span}`);
+  parts.push(
+    `${plural(b.totalCommits, "commit")} · ${plural(b.fileCount, "file")}${span}`,
+  );
 
   parts.push("");
   parts.push("  Most active:");
 
   for (const author of b.topAuthors) {
-    parts.push(`    ${author.commits} commits  ${author.author}`);
+    parts.push(`    ${plural(author.commits, "commit")}  ${author.author}`);
   }
 
   if (spots.length > 0) {

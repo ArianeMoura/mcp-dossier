@@ -13,6 +13,7 @@ import { hotspots } from "../analysis/hotspot.js";
 import { formatFileDossier } from "../tools/file-dossier.js";
 import { formatRepoBriefing } from "../tools/repo-briefing.js";
 import { formatHotspots } from "../tools/hotspots.js";
+import { pathSchema } from "../tools/schema.js";
 
 // Best-effort decode: malformed percent-encoding falls back to the raw value
 // instead of throwing.
@@ -35,7 +36,17 @@ export function registerDossierResources(server: McpServer) {
       mimeType: "text/plain",
     },
     safeResource("file-dossier", async (uri, variables, { signal }) => {
-      const path = safeDecode(String(variables.path));
+      // Same bound the tool applies: the path is echoed back, so cap it here too.
+      const parsed = pathSchema.safeParse(safeDecode(String(variables.path)));
+      if (!parsed.success) {
+        return {
+          contents: [
+            { uri: uri.href, mimeType: "text/plain", text: "Invalid path." },
+          ],
+        };
+      }
+
+      const path = parsed.data;
       const index = await getIndex(process.cwd(), { signal });
       const dossier = buildFileDossier(index, path, new Date());
       const text = dossier

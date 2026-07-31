@@ -2,11 +2,9 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { getIndex } from "../index/get.js";
 import { buildFileDossier, type FileDossier } from "../analysis/dossier.js";
-import { coupledLine } from "./format.js";
+import { coupledLine, plural } from "./format.js";
 import { safeTool } from "../safe-handler.js";
 import { pathSchema } from "./schema.js";
-
-const authorLabel = (n: number) => `${n} ${n === 1 ? "author" : "authors"}`;
 
 export function formatFileDossier(d: FileDossier): string {
   const parts: string[] = [];
@@ -15,13 +13,13 @@ export function formatFileDossier(d: FileDossier): string {
   parts.push("");
 
   parts.push(
-    `  ${d.churn} commits · ${authorLabel(d.risk.authorCount)} · first touched ${d.daysSinceFirstChange}d ago · last touched ${d.daysSinceLastChange}d ago`,
+    `  ${plural(d.churn, "commit")} · ${plural(d.risk.authorCount, "author")} · first touched ${d.daysSinceFirstChange}d ago · last touched ${d.daysSinceLastChange}d ago`,
   );
 
   parts.push(
     `  risk ${d.risk.score.toFixed(1)} (churn ${d.churn} · ${Math.round(
       d.risk.bugfixRatio * 100,
-    )}% bugfix · ${authorLabel(d.risk.authorCount)})`,
+    )}% bugfix · ${plural(d.risk.authorCount, "author")})`,
   );
 
   if (d.owners.length > 0) {

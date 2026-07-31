@@ -5,3 +5,8 @@ import type { CoupledFile } from "../analysis/coupling.js";
 export function coupledLine(f: CoupledFile): string {
   return `${Math.round(f.strength * 100)}% (${f.coChanges}x) ${f.path}`;
 }
+
+// Regular plurals only; every counted noun in the output is one.
+export function plural(n: number, word: string): string {
+  return `${n} ${word}${n === 1 ? "" : "s"}`;
+}

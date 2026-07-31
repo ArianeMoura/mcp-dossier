@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { createRequire } from "node:module";
+
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
@@ -14,8 +16,13 @@ import { registerDossierPrompts } from "./prompts/dossier.js";
 // All diagnostics go to stderr — stdout carries the MCP JSON-RPC protocol.
 const log = (message: string) => console.error(`mcp-dossier: ${message}`);
 
+// Single source: this is the version the client sees on handshake.
+const { version } = createRequire(import.meta.url)("../package.json") as {
+  version: string;
+};
+
 function createServer(): McpServer {
-  const server = new McpServer({ name: "mcp-dossier", version: "0.0.1" });
+  const server = new McpServer({ name: "mcp-dossier", version });
 
   registerCoupledFiles(server);
   registerFileDossier(server);
