@@ -5,6 +5,8 @@ this project follows [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-08-11
+
 ### Added
 
 - `MCP_DOSSIER_REPO` names the repository to analyze. Clients spawn servers from
@@ -78,5 +80,6 @@ this project follows [SemVer](https://semver.org/).
 - `git` output is now capped, and `MCP_DOSSIER_GIT_TIMEOUT_MS` has an upper
   bound, so neither can silently disable the guard it configures.
 
-[unreleased]: https://github.com/ArianeMoura/mcp-dossier/compare/v0.0.1...HEAD
+[unreleased]: https://github.com/ArianeMoura/mcp-dossier/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/ArianeMoura/mcp-dossier/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/ArianeMoura/mcp-dossier/releases/tag/v0.0.1
