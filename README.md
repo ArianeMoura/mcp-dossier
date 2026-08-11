@@ -21,20 +21,29 @@ returns ~200 tokens of signal.
 
 ## Install
 
-Nothing to configure: the server analyzes whatever repository it's launched in.
-Point your MCP client at `npx`:
+Requires Node ≥ 20.12 and `git` on `PATH`. Point your MCP client at `npx`:
 
 ```json
 {
   "mcpServers": {
-    "dossier": { "command": "npx", "args": ["-y", "mcp-dossier"] }
+    "dossier": {
+      "command": "npx",
+      "args": ["-y", "mcp-dossier"],
+      "env": { "MCP_DOSSIER_REPO": "/path/to/your/project" }
+    }
   }
 }
 ```
 
-There is one optional knob: `MCP_DOSSIER_GIT_TIMEOUT_MS` caps any single git
-call (default `15000`, max `600000`). A git process that outlives it is killed,
-so a request can't hang the server.
+`MCP_DOSSIER_REPO` names the repository to analyze. Omit it and the server reads
+its own working directory instead — right when you launch it from a project
+shell, wrong for most clients, which spawn servers from their install directory
+and not from your code. If the path isn't a git repository the server says so
+and exits, rather than failing once per call.
+
+`MCP_DOSSIER_GIT_TIMEOUT_MS` caps any single git call (default `15000`, max
+`600000`). A git process that outlives it is killed, so a request can't hang the
+server.
 
 ## Tools
 
