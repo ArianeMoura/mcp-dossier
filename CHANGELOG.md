@@ -5,8 +5,19 @@ this project follows [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `MCP_DOSSIER_REPO` names the repository to analyze. Clients spawn servers from
+  their own install directory, so the previous behaviour — read whatever the
+  process's working directory happened to be — pointed the server at no
+  repository at all in the most common setup, and every tool failed.
+
 ### Changed
 
+- The repository path is resolved once at startup and injected into the
+  handlers, which no longer read `process.cwd()` themselves. A path that isn't a
+  git repository now fails at startup with the variable to set, instead of
+  surfacing as a git error on every call.
 - `@modelcontextprotocol/sdk` now requires `^1.30.0`, which allows the patched
   `@hono/node-server` and `fast-uri`. Neither was reachable over stdio, but they
   no longer ship in the dependency tree.
