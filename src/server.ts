@@ -16,15 +16,15 @@ const { version } = createRequire(import.meta.url)("../package.json") as {
 };
 
 // The MCP surface, with no transport or process wiring, so tests can drive it.
-export function createServer(): McpServer {
+export function createServer(repoPath: string): McpServer {
   const server = new McpServer({ name: "mcp-dossier", version });
 
-  registerCoupledFiles(server);
-  registerFileDossier(server);
-  registerHotspots(server);
-  registerRepoBriefing(server);
-  registerReviewGap(server);
-  registerDossierResources(server);
+  registerCoupledFiles(server, repoPath);
+  registerFileDossier(server, repoPath);
+  registerHotspots(server, repoPath);
+  registerRepoBriefing(server, repoPath);
+  registerReviewGap(server, repoPath);
+  registerDossierResources(server, repoPath);
   registerDossierPrompts(server);
 
   return server;

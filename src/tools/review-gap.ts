@@ -31,7 +31,7 @@ export function formatReviewGap(gaps: GapSuggestion[]): string {
   ].join("\n");
 }
 
-export function registerReviewGap(server: McpServer) {
+export function registerReviewGap(server: McpServer, repoPath: string) {
   server.registerTool(
     "review_gap",
     {
@@ -43,8 +43,7 @@ export function registerReviewGap(server: McpServer) {
       },
     },
     safeTool("review_gap", async ({ limit }, { signal }) => {
-      const cwd = process.cwd();
-      const changed = await changedFiles(cwd, { signal });
+      const changed = await changedFiles(repoPath, { signal });
 
       if (changed.length === 0) {
         return {
@@ -54,12 +53,12 @@ export function registerReviewGap(server: McpServer) {
         };
       }
 
-      const index = await getIndex(cwd, { signal });
+      const index = await getIndex(repoPath, { signal });
       const gaps = reviewGap(index, changed);
 
       // Drop coupled files that were since deleted; probe in parallel.
       const present = await Promise.all(
-        gaps.map((g) => exists(join(cwd, g.path))),
+        gaps.map((g) => exists(join(repoPath, g.path))),
       );
       const alive = gaps.filter((_, i) => present[i]);
 

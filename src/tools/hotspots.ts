@@ -18,7 +18,7 @@ export function formatHotspots(spots: Hotspot[]): string {
   return ["Where it hurts most (churn × complexity):", "", ...lines].join("\n");
 }
 
-export function registerHotspots(server: McpServer) {
+export function registerHotspots(server: McpServer, repoPath: string) {
   server.registerTool(
     "hotspots",
     {
@@ -30,7 +30,7 @@ export function registerHotspots(server: McpServer) {
       },
     },
     safeTool("hotspots", async ({ limit }, { signal }) => {
-      const spots = (await hotspots(process.cwd(), { signal })).slice(
+      const spots = (await hotspots(repoPath, { signal })).slice(
         0,
         limit ?? 10,
       );

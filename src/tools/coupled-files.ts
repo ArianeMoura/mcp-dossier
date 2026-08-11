@@ -17,7 +17,7 @@ export function formatCoupled(target: string, results: CoupledFile[]): string {
   return [`${target} historically changes together with:`, ...lines].join("\n");
 }
 
-export function registerCoupledFiles(server: McpServer) {
+export function registerCoupledFiles(server: McpServer, repoPath: string) {
   server.registerTool(
     "coupled_files",
     {
@@ -30,7 +30,7 @@ export function registerCoupledFiles(server: McpServer) {
       },
     },
     safeTool("coupled_files", async ({ path, limit }, { signal }) => {
-      const index = await getIndex(process.cwd(), { signal });
+      const index = await getIndex(repoPath, { signal });
       const results = coupledFiles(index, path).slice(0, limit ?? 10);
       return {
         content: [{ type: "text", text: formatCoupled(path, results) }],

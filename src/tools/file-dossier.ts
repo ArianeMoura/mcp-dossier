@@ -54,7 +54,7 @@ export function formatFileDossier(d: FileDossier): string {
   return parts.join("\n");
 }
 
-export function registerFileDossier(server: McpServer) {
+export function registerFileDossier(server: McpServer, repoPath: string) {
   server.registerTool(
     "file_dossier",
     {
@@ -66,7 +66,7 @@ export function registerFileDossier(server: McpServer) {
       },
     },
     safeTool("file_dossier", async ({ path }, { signal }) => {
-      const index = await getIndex(process.cwd(), { signal });
+      const index = await getIndex(repoPath, { signal });
       const dossier = buildFileDossier(index, path, new Date());
 
       if (dossier === null) {
