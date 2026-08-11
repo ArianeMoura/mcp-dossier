@@ -1,7 +1,7 @@
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
@@ -15,14 +15,13 @@ import {
 } from "./git/tmp-repo.testutil.js";
 
 // A real client/server pair, so the zod schemas and the safeTool wrappers are on
-// the path. The handlers read process.cwd(); vitest forks per file, so the spy
-// below stays contained.
-async function connect(): Promise<Client> {
+// the path.
+async function connect(repoPath: string): Promise<Client> {
   const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
   const client = new Client({ name: "test", version: "0" });
   await Promise.all([
     client.connect(clientSide),
-    createServer().connect(serverSide),
+    createServer(repoPath).connect(serverSide),
   ]);
   return client;
 }
@@ -45,13 +44,11 @@ beforeEach(async () => {
   }
   await commitFile(repo, "lonely.ts", "  solo\n", "feat: lonely");
 
-  vi.spyOn(process, "cwd").mockReturnValue(repo);
-  client = await connect();
+  client = await connect(repo);
 });
 
 afterEach(async () => {
   await client.close();
-  vi.restoreAllMocks();
   await removeRepo(repo);
 });
 
@@ -179,9 +176,9 @@ describe("the MCP surface", () => {
   it("returns a sanitized error when the directory is not a repository", async () => {
     const notARepo = await makeTmpRepo();
     await removeRepo(join(notARepo, ".git"));
-    vi.spyOn(process, "cwd").mockReturnValue(notARepo);
+    const stray = await connect(notARepo);
 
-    const result = await client.callTool({
+    const result = await stray.callTool({
       name: "repo_briefing",
       arguments: {},
     });
@@ -192,6 +189,7 @@ describe("the MCP surface", () => {
     );
     expect(textOf(result)).not.toContain("fatal:");
 
+    await stray.close();
     await removeRepo(notARepo);
   });
 });

@@ -25,7 +25,7 @@ export function safeDecode(value: string): string {
   }
 }
 
-export function registerDossierResources(server: McpServer) {
+export function registerDossierResources(server: McpServer, repoPath: string) {
   // {+path} captures slashes, so a nested path like src/git/run.ts stays whole.
   server.registerResource(
     "file-dossier",
@@ -47,7 +47,7 @@ export function registerDossierResources(server: McpServer) {
       }
 
       const path = parsed.data;
-      const index = await getIndex(process.cwd(), { signal });
+      const index = await getIndex(repoPath, { signal });
       const dossier = buildFileDossier(index, path, new Date());
       const text = dossier
         ? formatFileDossier(dossier)
@@ -65,9 +65,9 @@ export function registerDossierResources(server: McpServer) {
       mimeType: "text/plain",
     },
     safeResource("repo-briefing", async (uri, { signal }) => {
-      const index = await getIndex(process.cwd(), { signal });
+      const index = await getIndex(repoPath, { signal });
       const briefing = buildRepoBriefing(index);
-      const spots = (await hotspots(process.cwd(), { signal })).slice(0, 5);
+      const spots = (await hotspots(repoPath, { signal })).slice(0, 5);
 
       const text =
         briefing.totalCommits === 0
@@ -94,7 +94,7 @@ export function registerDossierResources(server: McpServer) {
       mimeType: "text/plain",
     },
     safeResource("hotspots", async (uri, { signal }) => {
-      const spots = (await hotspots(process.cwd(), { signal })).slice(0, 10);
+      const spots = (await hotspots(repoPath, { signal })).slice(0, 10);
 
       return {
         contents: [

@@ -45,7 +45,7 @@ export function formatRepoBriefing(b: RepoBriefing, spots: Hotspot[]): string {
   return parts.join("\n");
 }
 
-export function registerRepoBriefing(server: McpServer) {
+export function registerRepoBriefing(server: McpServer, repoPath: string) {
   server.registerTool(
     "repo_briefing",
     {
@@ -56,7 +56,7 @@ export function registerRepoBriefing(server: McpServer) {
       // `arguments`, which the protocol allows.
     },
     safeTool("repo_briefing", async ({ signal }: ToolExtra) => {
-      const index = await getIndex(process.cwd(), { signal });
+      const index = await getIndex(repoPath, { signal });
       const briefing = buildRepoBriefing(index);
 
       if (briefing.totalCommits === 0) {
@@ -65,7 +65,7 @@ export function registerRepoBriefing(server: McpServer) {
         };
       }
 
-      const spots = (await hotspots(process.cwd(), { signal })).slice(0, 5);
+      const spots = (await hotspots(repoPath, { signal })).slice(0, 5);
       return {
         content: [{ type: "text", text: formatRepoBriefing(briefing, spots) }],
       };
