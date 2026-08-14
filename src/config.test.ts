@@ -4,7 +4,7 @@ import { loadConfig } from "./config.js";
 
 describe("loadConfig", () => {
   it("defaults the git timeout when the var is unset", () => {
-    expect(loadConfig({}).gitTimeoutMs).toBe(15_000);
+    expect(loadConfig({}).gitTimeoutMs).toBe(120_000);
   });
 
   it("accepts a valid override", () => {

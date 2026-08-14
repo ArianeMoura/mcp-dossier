@@ -5,6 +5,18 @@ this project follows [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Every tool failed on a repository past roughly 20k commits. Reading history
+  costs about 0.75ms per commit, so the 15s default timeout expired partway
+  through the `log --numstat` pass — 16s on React, before any analysis ran. The
+  default is now 120s, which covers about 160k commits; the 600s cap still
+  bounds a hung git.
+- A timeout reported the same opaque message as every other failure, so the one
+  setting that fixes it went unnamed. It now says what expired and which
+  variable raises it, without echoing the git arguments — a ref read from
+  repository data can reach that list.
+
 ## [0.1.0] - 2026-08-11
 
 ### Added

@@ -10,6 +10,19 @@ export type GitOptions = {
   maxOutputChars?: number;
 };
 
+// Typed so the MCP layer can name the fix. The message carries the args and
+// stays on stderr; only `timeoutMs` is safe to echo, since a ref taken from
+// repository data can reach the argument list.
+export class GitTimeoutError extends Error {
+  constructor(
+    readonly timeoutMs: number,
+    args: string[],
+  ) {
+    super(`git ${args.join(" ")} timed out after ${timeoutMs}ms`);
+    this.name = "GitTimeoutError";
+  }
+}
+
 // core.fsmonitor in a repository's own .git/config names an executable git will
 // run, so analyzing an untrusted clone would execute it; `-c` outranks every
 // config file. quotePath=false keeps non-ASCII paths verbatim instead of
@@ -128,9 +141,7 @@ export function runGit(
           ),
         );
       } else if (timedOut) {
-        reject(
-          new Error(`git ${args.join(" ")} timed out after ${timeoutMs}ms`),
-        );
+        reject(new GitTimeoutError(timeoutMs, args));
       } else if (opts.signal?.aborted) {
         reject(new Error(`git ${args.join(" ")} was cancelled`));
       } else if (code === 0) {

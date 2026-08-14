@@ -41,9 +41,10 @@ shell, wrong for most clients, which spawn servers from their install directory
 and not from your code. If the path isn't a git repository the server says so
 and exits, rather than failing once per call.
 
-`MCP_DOSSIER_GIT_TIMEOUT_MS` caps any single git call (default `15000`, max
+`MCP_DOSSIER_GIT_TIMEOUT_MS` caps any single git call (default `120000`, max
 `600000`). A git process that outlives it is killed, so a request can't hang the
-server.
+server. Reading history costs roughly 0.75ms per commit, so the default covers a
+repository of about 160k commits; past that, raise it.
 
 ## Tools
 

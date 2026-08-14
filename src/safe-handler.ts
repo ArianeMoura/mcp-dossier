@@ -3,11 +3,21 @@ import type {
   ReadResourceResult,
 } from "@modelcontextprotocol/sdk/types.js";
 
+import { GitTimeoutError } from "./git/run.js";
+
 // Log the full error to stderr (never stdout — the protocol channel), and hand
 // the client a clean message instead of git's raw stderr.
 
 function logFailure(kind: string, name: string, err: unknown): void {
   console.error(`[mcp-dossier] ${kind} ${name} failed:`, err);
+}
+
+// A timeout is our own error, not git's output, so saying so leaks nothing and
+// names the one knob that fixes it.
+function clientMessage(fallback: string, err: unknown): string {
+  return err instanceof GitTimeoutError
+    ? `Reading this repository's history took longer than ${err.timeoutMs}ms. A large repository needs a higher MCP_DOSSIER_GIT_TIMEOUT_MS.`
+    : fallback;
 }
 
 // Returned as an isError result so the model can react instead of the call throwing.
@@ -25,7 +35,10 @@ export function safeTool<A extends unknown[]>(
         content: [
           {
             type: "text",
-            text: `The "${name}" tool could not read this repository's history. Check the server logs for details.`,
+            text: clientMessage(
+              `The "${name}" tool could not read this repository's history. Check the server logs for details.`,
+              err,
+            ),
           },
         ],
       };
@@ -46,7 +59,10 @@ export function safeResource<A extends unknown[]>(
       // No `cause`: it would carry git's stderr back toward the client.
       // eslint-disable-next-line preserve-caught-error
       throw new Error(
-        `Could not read the "${name}" resource from this repository's history.`,
+        clientMessage(
+          `Could not read the "${name}" resource from this repository's history.`,
+          err,
+        ),
       );
     }
   };
