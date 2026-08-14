@@ -1,6 +1,5 @@
-// Type-checks what the build leaves out. `tsconfig.json` excludes tests so they
-// stay out of dist, and vitest transpiles without checking, so without this the
-// test suite is the one part of the codebase nothing type-checks.
+// The build config excludes tests so they stay out of dist, and vitest
+// transpiles without checking, so nothing type-checks them without this.
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
