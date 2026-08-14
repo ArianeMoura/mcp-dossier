@@ -20,6 +20,7 @@
     "node": ">=20.12"
   },
   "scripts": {
+    "prebuild": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
     "build": "tsc",
     "typecheck": "tsc --noEmit -p tsconfig.check.json",
     "dev": "tsc --watch",
