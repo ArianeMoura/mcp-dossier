@@ -3,7 +3,7 @@ import {
   type McpServer,
 } from "@modelcontextprotocol/sdk/server/mcp.js";
 
-import { getIndex } from "../index/get.js";
+import { getIndex } from "../repo-index/get.js";
 import { safeResource } from "../safe-handler.js";
 
 import { buildFileDossier } from "../analysis/dossier.js";

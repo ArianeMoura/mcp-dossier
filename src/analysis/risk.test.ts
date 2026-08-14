@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 
 import { fileRisk } from "./risk.js";
-import { buildIndex } from "../index/build.js";
+import { buildIndex } from "../repo-index/build.js";
 import type { Commit } from "../git/commits.js";
 
 const NOW = new Date("2026-07-01T00:00:00.000Z");

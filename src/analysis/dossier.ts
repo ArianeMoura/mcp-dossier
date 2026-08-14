@@ -1,4 +1,4 @@
-import type { RepoIndex } from "../index/build.js";
+import type { RepoIndex } from "../repo-index/build.js";
 import { coupledFiles, type CoupledFile } from "./coupling.js";
 import { fileOwnership, type AuthorKnowledge } from "./ownership.js";
 import { fileRisk, type RiskProfile } from "./risk.js";

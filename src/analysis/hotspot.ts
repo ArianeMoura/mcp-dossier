@@ -1,9 +1,9 @@
 import { lstat, readFile, realpath } from "node:fs/promises";
 import { resolve, sep } from "node:path";
 
-import { getIndex } from "../index/get.js";
+import { getIndex } from "../repo-index/get.js";
 import type { GitOptions } from "../git/run.js";
-import type { RepoIndex } from "../index/build.js";
+import type { RepoIndex } from "../repo-index/build.js";
 
 // Indentation complexity: average leading whitespace of non-blank lines. A
 // language-agnostic proxy for nesting; blind to long, flat functions.

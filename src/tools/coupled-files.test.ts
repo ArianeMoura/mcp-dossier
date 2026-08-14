@@ -5,7 +5,7 @@ import type { CoupledFile } from "../analysis/coupling.js";
 
 const results: CoupledFile[] = [
   { path: "src/git/run.ts", strength: 1, coChanges: 3 },
-  { path: "src/index/build.ts", strength: 2 / 3, coChanges: 2 },
+  { path: "src/repo-index/build.ts", strength: 2 / 3, coChanges: 2 },
 ];
 
 describe("formatCoupled", () => {
@@ -22,7 +22,7 @@ describe("formatCoupled", () => {
 
   it("rounds the percentage (0.666… becomes 67%)", () => {
     expect(formatCoupled("target.ts", results)).toContain(
-      "67% (2x) src/index/build.ts",
+      "67% (2x) src/repo-index/build.ts",
     );
   });
 
