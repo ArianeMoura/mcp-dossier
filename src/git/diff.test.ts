@@ -46,10 +46,14 @@ describe("changedFiles", () => {
 
     scratch = await mkdtemp(join(tmpdir(), "dossier-clone-"));
     const clone = join(scratch, "work");
+    // -c, not a later `git config`: the checkout happens during the clone, so
+    // setting it afterwards leaves the working tree already rewritten.
     git(
       scratch,
       "clone",
       "-q",
+      "-c",
+      "core.autocrlf=false",
       "--single-branch",
       "--branch",
       "main",
