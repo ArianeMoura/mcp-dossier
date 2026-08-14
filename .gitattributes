@@ -1,0 +1,3 @@
+# Git for Windows checks out CRLF by default, which fails prettier's LF check on
+# every file. Normalize in the repository and check out LF everywhere.
+* text=auto eol=lf
