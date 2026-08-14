@@ -17,7 +17,7 @@ function commit(
 ): Commit {
   return {
     hash: email + date.getTime(),
-    author: email.split("@")[0],
+    author: email.split("@")[0]!,
     email,
     date,
     subject: "",
@@ -41,12 +41,12 @@ describe("fileOwnership", () => {
   });
 
   it("ranks by knowledge: recency beats volume", () => {
-    expect(fileOwnership(index, "F", NOW)[0].email).toBe("bia@x");
+    expect(fileOwnership(index, "F", NOW)[0]!.email).toBe("bia@x");
   });
 
   it("counts added + removed lines", () => {
     const idx = buildIndex([commit("ana@x", monthsAgo(0), 10, 5)]);
-    expect(fileOwnership(idx, "F", NOW)[0].knowledge).toBeCloseTo(15);
+    expect(fileOwnership(idx, "F", NOW)[0]!.knowledge).toBeCloseTo(15);
   });
 
   it("sums an author's multiple commits", () => {
@@ -56,7 +56,7 @@ describe("fileOwnership", () => {
     ]);
     const r = fileOwnership(idx, "F", NOW);
     expect(r).toHaveLength(1);
-    expect(r[0].knowledge).toBeCloseTo(15);
+    expect(r[0]!.knowledge).toBeCloseTo(15);
   });
 
   it("a file nobody touched → []", () => {

@@ -16,7 +16,7 @@ function commit(
 ): Commit {
   return {
     hash: email + date.getTime() + subject,
-    author: email.split("@")[0],
+    author: email.split("@")[0]!,
     email,
     date,
     subject,

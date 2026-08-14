@@ -11,10 +11,18 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
+        os: [ubuntu-latest]
         node: [20, 22, 24]
+        # The support claim is about the OS, so one Node there is enough.
+        include:
+          - os: windows-latest
+            node: 22
+          - os: macos-latest
+            node: 22
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,6 +31,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - run: npm run typecheck
       - run: npm run lint
       - run: npm test
       - run: npm run format:check

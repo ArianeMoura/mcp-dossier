@@ -98,7 +98,7 @@ describe("rankHotspots", () => {
 
   it("ranks from highest score to lowest", () => {
     const ranked = rankHotspots(index, readContent);
-    expect(ranked[0].path).toBe("a"); // 4.8 before b (0)
+    expect(ranked[0]!.path).toBe("a"); // 4.8 before b (0)
   });
 
   it("skips files gone from disk (readContent null)", () => {

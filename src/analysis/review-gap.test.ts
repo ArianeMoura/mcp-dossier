@@ -40,7 +40,7 @@ describe("reviewGap", () => {
   });
 
   it("ranks by coupling strength", () => {
-    expect(reviewGap(index, ["auth.ts"])[0].path).toBe("auth.test.ts"); // 0.75 > 0.5
+    expect(reviewGap(index, ["auth.ts"])[0]!.path).toBe("auth.test.ts"); // 0.75 > 0.5
   });
 
   it("says which changed file surfaced the suggestion", () => {

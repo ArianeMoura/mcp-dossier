@@ -24,7 +24,7 @@ afterEach(() => {
 
 describe("safeTool", () => {
   it("passes a successful result through untouched", async () => {
-    const result = await safeTool("hotspots", async () => ok)();
+    const result = await safeTool("hotspots", () => Promise.resolve(ok))();
 
     expect(result).toEqual(ok);
     expect(errSpy).not.toHaveBeenCalled();
@@ -85,9 +85,9 @@ describe("safeResource", () => {
   const contents = { contents: [{ uri: "dossier://repo", text: "fine" }] };
 
   it("passes a successful result through untouched", async () => {
-    expect(await safeResource("repo-briefing", async () => contents)()).toEqual(
-      contents,
-    );
+    expect(
+      await safeResource("repo-briefing", () => Promise.resolve(contents))(),
+    ).toEqual(contents);
   });
 
   it("re-throws sanitized, with no cause carrying git's stderr", async () => {
