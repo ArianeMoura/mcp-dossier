@@ -3,7 +3,7 @@ import type {
   ToolCallback,
 } from "@modelcontextprotocol/sdk/server/mcp.js";
 
-import { getIndex } from "../index/get.js";
+import { getIndex } from "../repo-index/get.js";
 import { buildRepoBriefing, type RepoBriefing } from "../analysis/briefing.js";
 import { hotspots, type Hotspot } from "../analysis/hotspot.js";
 import { plural } from "./format.js";

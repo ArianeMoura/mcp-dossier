@@ -10,7 +10,7 @@ import {
   rankHotspots,
   isNoise,
 } from "./hotspot.js";
-import { buildIndex } from "../index/build.js";
+import { buildIndex } from "../repo-index/build.js";
 import type { Commit } from "../git/commits.js";
 import {
   commitFile,

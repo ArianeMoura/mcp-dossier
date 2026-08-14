@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
-import { getIndex } from "../index/get.js";
+import { getIndex } from "../repo-index/get.js";
 import { coupledFiles, type CoupledFile } from "../analysis/coupling.js";
 import { coupledLine } from "./format.js";
 import { safeTool } from "../safe-handler.js";

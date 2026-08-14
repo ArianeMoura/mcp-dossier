@@ -1,4 +1,4 @@
-import type { RepoIndex } from "../index/build.js";
+import type { RepoIndex } from "../repo-index/build.js";
 
 export type AuthorActivity = {
   email: string;

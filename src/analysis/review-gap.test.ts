@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 
 import { reviewGap } from "./review-gap.js";
-import { buildIndex } from "../index/build.js";
+import { buildIndex } from "../repo-index/build.js";
 import type { Commit } from "../git/commits.js";
 
 function commit(hash: string, paths: string[]): Commit {

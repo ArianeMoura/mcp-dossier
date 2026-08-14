@@ -1,4 +1,4 @@
-import type { RepoIndex } from "../index/build.js";
+import type { RepoIndex } from "../repo-index/build.js";
 import { coupledFiles } from "./coupling.js";
 
 export type GapSuggestion = {

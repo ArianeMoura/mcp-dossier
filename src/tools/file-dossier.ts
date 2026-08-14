@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
-import { getIndex } from "../index/get.js";
+import { getIndex } from "../repo-index/get.js";
 import { buildFileDossier, type FileDossier } from "../analysis/dossier.js";
 import { coupledLine, plural } from "./format.js";
 import { safeTool } from "../safe-handler.js";
