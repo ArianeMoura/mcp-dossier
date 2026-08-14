@@ -23,21 +23,21 @@ describe("parseLog", () => {
   });
 
   it("captures the hash of the first commit", () => {
-    expect(parseLog(raw)[0].hash).toBe("hashAAA");
+    expect(parseLog(raw)[0]!.hash).toBe("hashAAA");
   });
 
   it("does not let junk leak into the second commit's hash", () => {
-    expect(parseLog(raw)[1].hash).toBe("hashBBB");
+    expect(parseLog(raw)[1]!.hash).toBe("hashBBB");
   });
 
   it("captures author and email", () => {
-    const c = parseLog(raw)[0];
+    const c = parseLog(raw)[0]!;
     expect(c.author).toBe("Ana Lima");
     expect(c.email).toBe("ana@example.com");
   });
 
   it("converts the date into a real Date (not a string)", () => {
-    const c = parseLog(raw)[0];
+    const c = parseLog(raw)[0]!;
     expect(c.date).toBeInstanceOf(Date);
     expect(c.date.toISOString()).toBe("2026-01-02T13:00:00.000Z");
   });
@@ -45,11 +45,13 @@ describe("parseLog", () => {
   it("keeps a subject with | and does NOT let file lines leak into it", () => {
     // The trap: splitting the whole block on US glues the subject to
     // "\n10\t2\t...". The subject must be only the first line.
-    expect(parseLog(raw)[1].subject).toBe("feat: support a || b in the parser");
+    expect(parseLog(raw)[1]!.subject).toBe(
+      "feat: support a || b in the parser",
+    );
   });
 
   it("captures each commit's files", () => {
-    const c = parseLog(raw)[0];
+    const c = parseLog(raw)[0]!;
     expect(c.files).toHaveLength(2);
     expect(c.files[0]).toEqual({ path: "src/auth.ts", added: 10, removed: 2 });
     expect(c.files[1]).toEqual({
@@ -60,7 +62,7 @@ describe("parseLog", () => {
   });
 
   it("treats a binary file (numstat '-') as 0 lines", () => {
-    const bin = parseLog(raw)[1].files[1];
+    const bin = parseLog(raw)[1]!.files[1];
     expect(bin).toEqual({ path: "assets/logo.png", added: 0, removed: 0 });
   });
 

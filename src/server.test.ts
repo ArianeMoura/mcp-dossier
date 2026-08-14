@@ -29,6 +29,10 @@ async function connect(repoPath: string): Promise<Client> {
 const textOf = (result: unknown) =>
   (result as { content: { text: string }[] }).content[0]!.text;
 
+// Resource contents are text-or-blob in the SDK's types; every one here is text.
+const resourceTextOf = (result: unknown) =>
+  (result as { contents: { text: string }[] }).contents[0]!.text;
+
 let repo: string;
 let client: Client;
 
@@ -143,17 +147,17 @@ describe("the MCP surface", () => {
 
   it("serves the resources", async () => {
     const repoRes = await client.readResource({ uri: "dossier://repo" });
-    expect(repoRes.contents[0]!.text).toContain("Most active:");
+    expect(resourceTextOf(repoRes)).toContain("Most active:");
 
     const file = await client.readResource({ uri: "dossier://file/auth.ts" });
-    expect(file.contents[0]!.text).toContain("auth.ts");
+    expect(resourceTextOf(file)).toContain("auth.ts");
   });
 
   it("rejects a path past the schema bound without echoing it", async () => {
     const long = "a".repeat(5000);
 
     const file = await client.readResource({ uri: `dossier://file/${long}` });
-    expect(file.contents[0]!.text).toBe("Invalid path.");
+    expect(resourceTextOf(file)).toBe("Invalid path.");
 
     const tool = await client.callTool({
       name: "coupled_files",
