@@ -6,7 +6,7 @@ import { getIndex } from "../index/get.js";
 import { changedFiles } from "../git/diff.js";
 import { reviewGap, type GapSuggestion } from "../analysis/review-gap.js";
 import { safeTool } from "../safe-handler.js";
-import { limitSchema } from "./schema.js";
+import { limitSchema, minStrengthSchema } from "./schema.js";
 
 const exists = (path: string) =>
   access(path).then(
@@ -40,9 +40,10 @@ export function registerReviewGap(server: McpServer, repoPath: string) {
         "Given the branch's current change, points out the files that historically change together with what you edited and that you haven't touched yet. Use before opening the PR.",
       inputSchema: {
         limit: limitSchema("suggestions", 10),
+        minStrength: minStrengthSchema,
       },
     },
-    safeTool("review_gap", async ({ limit }, { signal }) => {
+    safeTool("review_gap", async ({ limit, minStrength }, { signal }) => {
       const changed = await changedFiles(repoPath, { signal });
 
       if (changed.length === 0) {
@@ -54,7 +55,7 @@ export function registerReviewGap(server: McpServer, repoPath: string) {
       }
 
       const index = await getIndex(repoPath, { signal });
-      const gaps = reviewGap(index, changed);
+      const gaps = reviewGap(index, changed, { minStrength });
 
       // Drop coupled files that were since deleted; probe in parallel.
       const present = await Promise.all(

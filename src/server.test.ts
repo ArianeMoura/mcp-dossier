@@ -145,6 +145,33 @@ describe("the MCP surface", () => {
     expect(text).toContain("auth.test.ts");
   });
 
+  it("drops suggestions below minStrength", async () => {
+    // auth.ts alone once more, so its coupling with the test falls under 100%.
+    await commitFile(repo, "auth.ts", "  solo\n", "chore: auth alone");
+    git(repo, "checkout", "-q", "-b", "feature");
+    await commitFile(repo, "auth.ts", "  changed\n", "fix: auth");
+
+    const gapsAt = async (minStrength: number) =>
+      textOf(
+        await client.callTool({
+          name: "review_gap",
+          arguments: { minStrength },
+        }),
+      );
+
+    expect(await gapsAt(0.5)).toContain("auth.test.ts");
+    expect(await gapsAt(1)).not.toContain("auth.test.ts");
+  });
+
+  it("rejects a minStrength outside 0–1", async () => {
+    const result = await client.callTool({
+      name: "review_gap",
+      arguments: { minStrength: 1.5 },
+    });
+
+    expect(result.isError).toBe(true);
+  });
+
   it("serves the resources", async () => {
     const repoRes = await client.readResource({ uri: "dossier://repo" });
     expect(resourceTextOf(repoRes)).toContain("Most active:");

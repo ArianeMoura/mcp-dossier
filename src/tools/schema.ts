@@ -12,6 +12,17 @@ export function limitSchema(item: string, fallback: number) {
     .describe(`Maximum number of ${item} (1–100, default: ${fallback})`);
 }
 
+// The useful range shrinks as a repository grows: a pair reaches 100% in a small
+// one and tops out near 30% in React. No single floor fits both, so there's none.
+export const minStrengthSchema = z
+  .number()
+  .min(0)
+  .max(1)
+  .optional()
+  .describe(
+    "Drop suggestions weaker than this coupling ratio (0–1, default: 0)",
+  );
+
 // A non-empty file path, relative to the repository root. The cap is well past
 // any real path: the value is echoed back to the client, so an unbounded string
 // is free amplification.

@@ -91,13 +91,13 @@ bigger than the default budget. Raise `MCP_DOSSIER_GIT_TIMEOUT_MS`.
 
 ## Tools
 
-| tool            | takes           | answers                                        |
-| --------------- | --------------- | ---------------------------------------------- |
-| `file_dossier`  | `path`          | everything the history knows about a file      |
-| `coupled_files` | `path`, `limit` | what changes together with a file              |
-| `review_gap`    | `limit`         | what you forgot to touch on the current branch |
-| `hotspots`      | `limit`         | where churn and complexity concentrate         |
-| `repo_briefing` | —               | a get-me-up-to-speed overview                  |
+| tool            | takes                  | answers                                        |
+| --------------- | ---------------------- | ---------------------------------------------- |
+| `file_dossier`  | `path`                 | everything the history knows about a file      |
+| `coupled_files` | `path`, `limit`        | what changes together with a file              |
+| `review_gap`    | `limit`, `minStrength` | what you forgot to touch on the current branch |
+| `hotspots`      | `limit`                | where churn and complexity concentrate         |
+| `repo_briefing` | —                      | a get-me-up-to-speed overview                  |
 
 `path` is relative to the repository root; `limit` is optional, 1–100, and
 defaults to 10.
