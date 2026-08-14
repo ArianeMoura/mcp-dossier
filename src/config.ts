@@ -4,13 +4,18 @@ import { z } from "zod";
 // absurd timeout silently disables the guard it configures.
 const MAX_GIT_TIMEOUT_MS = 600_000;
 
+// A full `log --numstat` pass costs roughly 0.75ms per commit, so the previous
+// 15s default expired partway through any repository past ~20k commits — React
+// among them. This covers ~160k, and the cap still bounds a hung git.
+const DEFAULT_GIT_TIMEOUT_MS = 120_000;
+
 const EnvSchema = z.object({
   MCP_DOSSIER_GIT_TIMEOUT_MS: z.coerce
     .number()
     .int()
     .positive()
     .max(MAX_GIT_TIMEOUT_MS)
-    .default(15_000),
+    .default(DEFAULT_GIT_TIMEOUT_MS),
 });
 
 export type Config = {

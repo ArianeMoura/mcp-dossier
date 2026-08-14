@@ -53,6 +53,12 @@ describe("runGit", () => {
     ).rejects.toThrow(/timed out/);
   });
 
+  it("reports a timeout as GitTimeoutError, carrying the budget it blew", async () => {
+    await expect(
+      runGit(repo, ["hash-object", "--stdin"], { timeoutMs: 150 }),
+    ).rejects.toMatchObject({ name: "GitTimeoutError", timeoutMs: 150 });
+  });
+
   it("rejects with a cancellation message when aborted", async () => {
     const controller = new AbortController();
     const promise = runGit(repo, ["hash-object", "--stdin"], {
