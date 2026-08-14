@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { changedFiles } from "./diff.js";
 import {
   commitFile,
+  configure,
   git,
   makeTmpRepo,
   removeRepo,
@@ -55,9 +56,7 @@ describe("changedFiles", () => {
       repo,
       clone,
     );
-    git(clone, "config", "user.email", "test@example.com");
-    git(clone, "config", "user.name", "Test");
-    git(clone, "config", "commit.gpgsign", "false");
+    configure(clone);
 
     git(clone, "checkout", "-q", "-b", "feature");
     git(clone, "branch", "-q", "-D", "main");
