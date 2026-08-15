@@ -1,10 +1,8 @@
 import { runGit, readCommits, type GitOptions } from "../git/run.js";
 import { buildIndex, type RepoIndex } from "./build.js";
 
-// In-memory cache per process (= per stdio server session). Key: the repo path;
-// value: the index and the HEAD SHA it was built at (the invalidation key).
-// The promise, not the index: two tools called in parallel on a cold cache
-// would otherwise both run the full scan.
+// Per process, so per stdio session. The promise rather than the index: two
+// tools called in parallel on a cold cache would otherwise both run the scan.
 const cache = new Map<string, { head: string; index: Promise<RepoIndex> }>();
 
 // The HEAD SHA, or "" if the repo has no commits yet.

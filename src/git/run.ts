@@ -3,7 +3,6 @@ import { spawn } from "node:child_process";
 import { getConfig } from "../config.js";
 import { LOG_FORMAT, parseLog, type Commit } from "./commits.js";
 
-// Cancellation + limits, threaded through every git-touching function.
 export type GitOptions = {
   signal?: AbortSignal;
   timeoutMs?: number;
@@ -158,7 +157,6 @@ export function runGit(
   });
 }
 
-// The history as typed Commit[], newest first.
 export async function readCommits(
   repoPath: string,
   opts: GitOptions = {},

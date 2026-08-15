@@ -9,9 +9,9 @@ export function resolveRepoPath(env: NodeJS.ProcessEnv = process.env): string {
   return configured ? resolve(configured) : process.cwd();
 }
 
-// git reports paths relative to the work tree root, so a subdirectory would
-// join them onto the wrong base and find nothing. `--show-toplevel` also fails
-// on a bare repository, which has no work tree to read; `--git-dir` wouldn't.
+// git reports paths from the work tree root, so a subdirectory would join them
+// onto the wrong base. `--show-toplevel` also rejects a bare repository, which
+// has no work tree to read.
 export async function resolveRepoRoot(
   repoPath: string,
   opts: GitOptions = {},

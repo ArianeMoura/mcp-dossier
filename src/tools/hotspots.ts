@@ -30,10 +30,7 @@ export function registerHotspots(server: McpServer, repoPath: string) {
       },
     },
     safeTool("hotspots", async ({ limit }, { signal }) => {
-      const spots = (await hotspots(repoPath, { signal })).slice(
-        0,
-        limit ?? 10,
-      );
+      const spots = (await hotspots(repoPath, { signal })).slice(0, limit);
       return { content: [{ type: "text", text: formatHotspots(spots) }] };
     }),
   );

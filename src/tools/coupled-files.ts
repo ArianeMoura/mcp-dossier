@@ -30,7 +30,7 @@ export function registerCoupledFiles(server: McpServer, repoPath: string) {
     },
     safeTool("coupled_files", async ({ path, limit }, { signal }) => {
       const index = await getIndex(repoPath, { signal });
-      const results = coupledFiles(index, path).slice(0, limit ?? 10);
+      const results = coupledFiles(index, path).slice(0, limit);
       return {
         content: [{ type: "text", text: formatCoupled(path, results) }],
       };
