@@ -17,7 +17,7 @@ export default tseslint.config(
   },
   {
     rules: {
-      // Unused args are fine when prefixed with _ (e.g. handler (_args, extra)).
+      // Unused args are fine when prefixed with _, as in `filter((_, i) => …)`.
       "@typescript-eslint/no-unused-vars": [
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
@@ -32,8 +32,16 @@ export default tseslint.config(
     },
   },
   {
-    // This config file itself: no TS project covers it.
-    files: ["**/*.js"],
+    // This config file and the benchmark: no TS project covers them, so the
+    // node globals @types/node supplies everywhere else have to be declared.
+    files: ["**/*.js", "**/*.mjs"],
     extends: [tseslint.configs.disableTypeChecked],
+    languageOptions: {
+      globals: {
+        console: "readonly",
+        performance: "readonly",
+        process: "readonly",
+      },
+    },
   },
 );
