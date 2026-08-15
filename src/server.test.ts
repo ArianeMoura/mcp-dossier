@@ -1,4 +1,4 @@
-import { writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 
+import { resolveRepoRoot } from "./repo.js";
 import { createServer } from "./server.js";
 import {
   commitFile,
@@ -170,6 +171,27 @@ describe("the MCP surface", () => {
     });
 
     expect(result.isError).toBe(true);
+  });
+
+  it("ranks hotspots when the configured path is a subdirectory", async () => {
+    await mkdir(join(repo, "nested"));
+    await commitFile(
+      repo,
+      join("nested", "deep.ts"),
+      "        deep\n".repeat(4),
+      "feat: deep",
+    );
+
+    const root = await resolveRepoRoot(join(repo, "nested"));
+    expect(root).not.toBeNull();
+    const fromSubdir = await connect(root!);
+
+    const text = textOf(
+      await fromSubdir.callTool({ name: "hotspots", arguments: { limit: 10 } }),
+    );
+    expect(text).toContain("nested/deep.ts");
+
+    await fromSubdir.close();
   });
 
   it("serves the resources", async () => {

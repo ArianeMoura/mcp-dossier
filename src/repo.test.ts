@@ -1,12 +1,14 @@
+import { realpathSync } from "node:fs";
 import { mkdir, mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { isGitRepo, resolveRepoPath } from "./repo.js";
+import { resolveRepoPath, resolveRepoRoot } from "./repo.js";
 import {
   commitFile,
+  git,
   makeTmpRepo,
   removeRepo,
 } from "./git/tmp-repo.testutil.js";
@@ -41,33 +43,45 @@ describe("resolveRepoPath", () => {
   });
 });
 
-describe("isGitRepo", () => {
-  it("accepts a repository", async () => {
+describe("resolveRepoRoot", () => {
+  // macOS puts the temp dir behind /private; git reports the resolved path.
+  const real = (path: string) => realpathSync(path);
+
+  it("returns the root of a repository", async () => {
     await commitFile(repo, "a.ts", "a\n", "chore: a");
 
-    expect(await isGitRepo(repo)).toBe(true);
+    expect(await resolveRepoRoot(repo)).toBe(real(repo));
   });
 
-  it("accepts a subdirectory of a repository", async () => {
+  it("climbs to the root from a subdirectory", async () => {
     await mkdir(join(repo, "src"));
     await commitFile(repo, join("src", "a.ts"), "a\n", "chore: a");
 
-    expect(await isGitRepo(join(repo, "src"))).toBe(true);
+    expect(await resolveRepoRoot(join(repo, "src"))).toBe(real(repo));
   });
 
-  it("accepts a repository with no commits yet", async () => {
-    expect(await isGitRepo(repo)).toBe(true);
+  it("returns the root of a repository with no commits yet", async () => {
+    expect(await resolveRepoRoot(repo)).toBe(real(repo));
   });
 
   it("rejects a plain directory", async () => {
     const plain = await mkdtemp(join(tmpdir(), "dossier-plain-"));
 
-    expect(await isGitRepo(plain)).toBe(false);
+    expect(await resolveRepoRoot(plain)).toBeNull();
 
     await removeRepo(plain);
   });
 
   it("rejects a path that doesn't exist", async () => {
-    expect(await isGitRepo(join(repo, "nope", "nowhere"))).toBe(false);
+    expect(await resolveRepoRoot(join(repo, "nope", "nowhere"))).toBeNull();
+  });
+
+  it("rejects a bare repository", async () => {
+    const bare = await mkdtemp(join(tmpdir(), "dossier-bare-"));
+    git(bare, "init", "-q", "--bare", "-b", "main");
+
+    expect(await resolveRepoRoot(bare)).toBeNull();
+
+    await removeRepo(bare);
   });
 });

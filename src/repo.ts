@@ -9,16 +9,17 @@ export function resolveRepoPath(env: NodeJS.ProcessEnv = process.env): string {
   return configured ? resolve(configured) : process.cwd();
 }
 
-// `rev-parse --git-dir` exits 0 anywhere inside a work tree, so a subdirectory
-// of the project is a valid entry point too.
-export async function isGitRepo(
+// git reports paths relative to the work tree root, so a subdirectory would
+// join them onto the wrong base and find nothing. `--show-toplevel` also fails
+// on a bare repository, which has no work tree to read; `--git-dir` wouldn't.
+export async function resolveRepoRoot(
   repoPath: string,
   opts: GitOptions = {},
-): Promise<boolean> {
+): Promise<string | null> {
   try {
-    await runGit(repoPath, ["rev-parse", "--git-dir"], opts);
-    return true;
+    const root = await runGit(repoPath, ["rev-parse", "--show-toplevel"], opts);
+    return root.trim() || null;
   } catch {
-    return false;
+    return null;
   }
 }

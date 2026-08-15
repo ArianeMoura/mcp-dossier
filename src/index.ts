@@ -2,7 +2,7 @@
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
 import { getConfig } from "./config.js";
-import { isGitRepo, resolveRepoPath } from "./repo.js";
+import { resolveRepoPath, resolveRepoRoot } from "./repo.js";
 import { createServer } from "./server.js";
 
 // All diagnostics go to stderr — stdout carries the MCP JSON-RPC protocol.
@@ -13,14 +13,15 @@ async function main(): Promise<void> {
 
   // Fail here rather than from every tool call: a server with no repository to
   // read can't answer anything, and the client surfaces a startup failure.
-  const repoPath = resolveRepoPath();
-  if (!(await isGitRepo(repoPath))) {
+  const configured = resolveRepoPath();
+  const repoRoot = await resolveRepoRoot(configured);
+  if (repoRoot === null) {
     throw new Error(
-      `not a git repository: ${repoPath} — set MCP_DOSSIER_REPO to your project's path`,
+      `not a git repository: ${configured} — set MCP_DOSSIER_REPO to your project's path`,
     );
   }
 
-  const server = createServer(repoPath);
+  const server = createServer(repoRoot);
   const transport = new StdioServerTransport();
 
   // Close once, whoever triggers it.
@@ -51,7 +52,7 @@ async function main(): Promise<void> {
   });
 
   await server.connect(transport);
-  log(`server started on ${repoPath}`);
+  log(`server started on ${repoRoot}`);
 }
 
 main().catch((err) => {
