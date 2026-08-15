@@ -39,8 +39,7 @@ packages/react-reconciler/src/ReactFiberCommitWork.js
     [Fiber] Extract Fragment instance commit helpers into their own module (#37167)
 ```
 
-Who to ask about it, what it drags along when it changes, and how much it hurts
-— none of which is in the file, and all of which is in the history.
+The file itself shows none of this.
 
 ## Why not just `git log`?
 
@@ -163,15 +162,7 @@ The client only ever receives a sanitized message.
 
 ## Development
 
-Requires Node ≥ 20.12.
-
-```sh
-npm install
-npm run build
-npm run lint
-npm test
-npm run format:check
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and the checks CI runs.
 
 To try a local build, register `node dist/index.js` in your MCP client instead
 of `npx`, with the same `MCP_DOSSIER_REPO` in `env`.
