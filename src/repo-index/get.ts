@@ -3,7 +3,9 @@ import { buildIndex, type RepoIndex } from "./build.js";
 
 // In-memory cache per process (= per stdio server session). Key: the repo path;
 // value: the index and the HEAD SHA it was built at (the invalidation key).
-const cache = new Map<string, { head: string; index: RepoIndex }>();
+// The promise, not the index: two tools called in parallel on a cold cache
+// would otherwise both run the full scan.
+const cache = new Map<string, { head: string; index: Promise<RepoIndex> }>();
 
 // The HEAD SHA, or "" if the repo has no commits yet.
 async function currentHead(
@@ -29,8 +31,14 @@ export async function getIndex(
     return cached.index;
   }
 
-  const commits = await readCommits(repoPath, opts);
-  const index = buildIndex(commits);
+  const index = readCommits(repoPath, opts).then(buildIndex);
   cache.set(repoPath, { head, index });
+
+  // A failed scan must not be served to the next caller, and the entry may have
+  // been replaced by a newer HEAD in the meantime.
+  index.catch(() => {
+    if (cache.get(repoPath)?.index === index) cache.delete(repoPath);
+  });
+
   return index;
 }

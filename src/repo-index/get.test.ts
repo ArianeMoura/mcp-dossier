@@ -23,7 +23,25 @@ describe("getIndex", () => {
 
     const first = await getIndex(repo);
     const second = await getIndex(repo);
-    expect(second).toBe(first); // same reference, not rebuilt
+    expect(second).toBe(first);
+  });
+
+  // Two tools called in parallel arrive before either has finished scanning.
+  it("gives concurrent callers the same in-flight build", async () => {
+    await commitFile(repo, "a.ts", "one\n", "feat: a");
+
+    const [first, second] = await Promise.all([getIndex(repo), getIndex(repo)]);
+
+    expect(second).toBe(first);
+  });
+
+  it("does not serve a failed scan to the next caller", async () => {
+    await commitFile(repo, "a.ts", "one\n", "feat: a");
+    await expect(getIndex(repo, { timeoutMs: 1 })).rejects.toThrow();
+
+    await expect(getIndex(repo)).resolves.toMatchObject({
+      commits: expect.anything(),
+    });
   });
 
   it("rebuilds when HEAD moves", async () => {
