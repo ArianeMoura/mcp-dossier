@@ -38,8 +38,10 @@ export function buildFileDossier(
 
   const lastChange = newest.date;
   const firstChange = oldest.date;
+  // Clamped like decayWeight: a commit dated in the future is clock skew, and
+  // "first touched -354000d ago" is worse than saying today.
   const days = (d: Date) =>
-    Math.floor((now.getTime() - d.getTime()) / MS_PER_DAY);
+    Math.max(0, Math.floor((now.getTime() - d.getTime()) / MS_PER_DAY));
 
   return {
     path,
