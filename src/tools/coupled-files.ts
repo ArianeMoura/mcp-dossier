@@ -6,7 +6,6 @@ import { coupledLine } from "./format.js";
 import { safeTool } from "../safe-handler.js";
 import { limitSchema, pathSchema } from "./schema.js";
 
-// Deliberately dense: every output token costs model context.
 export function formatCoupled(target: string, results: CoupledFile[]): string {
   if (results.length === 0) {
     return `No file changes consistently with ${target}.`;

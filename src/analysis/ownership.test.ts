@@ -26,7 +26,6 @@ function commit(
 }
 
 describe("fileOwnership", () => {
-  // bia: 30 lines today. ana: 100 lines 12 months ago.
   const index = buildIndex([
     commit("bia@x", monthsAgo(0), 30),
     commit("ana@x", monthsAgo(12), 100),

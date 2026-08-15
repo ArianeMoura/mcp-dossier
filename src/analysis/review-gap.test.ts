@@ -31,7 +31,6 @@ describe("reviewGap", () => {
   });
 
   it("SUBTRACTS what you already changed", () => {
-    // touched auth.ts AND auth.test.ts → auth.test.ts is not a gap
     const paths = reviewGap(index, ["auth.ts", "auth.test.ts"]).map(
       (g) => g.path,
     );

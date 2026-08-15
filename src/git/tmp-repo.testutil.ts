@@ -12,8 +12,9 @@ export async function makeTmpRepo(): Promise<string> {
   return dir;
 }
 
-// Git for Windows defaults core.autocrlf to true, which rewrites line endings on
-// checkout and leaves every text file looking modified against the index.
+// A test repository shouldn't inherit the machine's git config: identity and
+// signing so commits work on any CI, autocrlf so line endings don't depend on
+// the platform.
 export function configure(dir: string): void {
   git(dir, "config", "user.email", "test@example.com");
   git(dir, "config", "user.name", "Test");

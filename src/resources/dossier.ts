@@ -15,8 +15,7 @@ import { formatRepoBriefing } from "../tools/repo-briefing.js";
 import { formatHotspots } from "../tools/hotspots.js";
 import { pathSchema } from "../tools/schema.js";
 
-// Best-effort decode: malformed percent-encoding falls back to the raw value
-// instead of throwing.
+// Malformed percent-encoding falls back to the raw value instead of throwing.
 export function safeDecode(value: string): string {
   try {
     return decodeURIComponent(value);

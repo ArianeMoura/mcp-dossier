@@ -1,5 +1,5 @@
-// Control-char delimiters: they never appear in a name, email, or message, so
-// they can't be mistaken for a separator. US splits fields; RS splits commits.
+// These never appear in a name, email or message, so they can't be mistaken for
+// a separator. US splits fields; RS splits commits.
 export const US = "\x1f";
 export const RS = "\x1e";
 
