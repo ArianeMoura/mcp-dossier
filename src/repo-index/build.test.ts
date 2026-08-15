@@ -3,19 +3,21 @@ import { describe, it, expect } from "vitest";
 import { buildIndex } from "./build.js";
 import type { Commit } from "../git/commits.js";
 
-/** Builds a fake Commit touching the given files. */
-function commit(hash: string, paths: string[]): Commit {
+function commit(
+  hash: string,
+  paths: string[],
+  date = "2026-01-01T00:00:00.000Z",
+): Commit {
   return {
     hash,
     author: "Author",
     email: "author@example.com",
-    date: new Date("2026-01-01T00:00:00.000Z"),
+    date: new Date(date),
     subject: "commit " + hash,
     files: paths.map((path) => ({ path, added: 1, removed: 0 })),
   };
 }
 
-// A touched auth.ts + auth.test.ts; B touched auth.ts + ui.ts
 const commits: Commit[] = [
   commit("A", ["src/auth.ts", "src/auth.test.ts"]),
   commit("B", ["src/auth.ts", "src/ui.ts"]),
@@ -42,6 +44,32 @@ describe("buildIndex", () => {
 
   it("a file nobody touched returns undefined", () => {
     expect(buildIndex(commits).byFile.get("does/not/exist.ts")).toBeUndefined();
+  });
+
+  it("sorts by author date rather than trusting the order it was given", () => {
+    const out = [
+      commit("older", ["src/auth.ts"], "2026-01-01T00:00:00.000Z"),
+      commit("newer", ["src/auth.ts"], "2026-03-01T00:00:00.000Z"),
+    ];
+
+    const index = buildIndex(out);
+
+    expect(index.commits.map((c) => c.hash)).toEqual(["newer", "older"]);
+    expect(index.byFile.get("src/auth.ts")?.map((c) => c.hash)).toEqual([
+      "newer",
+      "older",
+    ]);
+  });
+
+  it("leaves the caller's array untouched", () => {
+    const out = [
+      commit("older", ["a.ts"], "2026-01-01T00:00:00.000Z"),
+      commit("newer", ["a.ts"], "2026-03-01T00:00:00.000Z"),
+    ];
+
+    buildIndex(out);
+
+    expect(out.map((c) => c.hash)).toEqual(["older", "newer"]);
   });
 
   it("an empty commit list → empty index", () => {
