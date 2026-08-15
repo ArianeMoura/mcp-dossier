@@ -1,14 +1,14 @@
 import { z } from "zod";
 
-// Bounded positive int: a negative/fractional value would slip into `.slice()`
-// and yield nonsense; the cap keeps output within a sane context budget.
+// A negative or fractional value would slip into `.slice()`, and the cap keeps
+// output within a sane context budget.
 export function limitSchema(item: string, fallback: number) {
   return z
     .number()
     .int()
     .positive()
     .max(100)
-    .optional()
+    .default(fallback)
     .describe(`Maximum number of ${item} (1–100, default: ${fallback})`);
 }
 
@@ -23,9 +23,8 @@ export const minStrengthSchema = z
     "Drop suggestions weaker than this coupling ratio (0–1, default: 0)",
   );
 
-// A non-empty file path, relative to the repository root. The cap is well past
-// any real path: the value is echoed back to the client, so an unbounded string
-// is free amplification.
+// The cap is well past any real path, but the value is echoed back, so an
+// unbounded string would be free amplification.
 export const pathSchema = z
   .string()
   .min(1)

@@ -2,6 +2,7 @@ import { lstat, readFile, realpath } from "node:fs/promises";
 import { resolve, sep } from "node:path";
 
 import { getIndex } from "../repo-index/get.js";
+import { forEachPooled } from "../pool.js";
 import type { GitOptions } from "../git/run.js";
 import type { RepoIndex } from "../repo-index/build.js";
 
@@ -68,25 +69,6 @@ export function isNoise(path: string): boolean {
 // many open at once, and this much from any single file.
 const READ_CONCURRENCY = 16;
 const MAX_FILE_BYTES = 512 * 1024;
-
-// Shared cursor, so a slow file doesn't stall the others.
-async function forEachPooled<T>(
-  items: T[],
-  limit: number,
-  fn: (item: T) => Promise<void>,
-): Promise<void> {
-  let next = 0;
-  const worker = async () => {
-    while (next < items.length) {
-      const item = items[next++];
-      if (item === undefined) return;
-      await fn(item);
-    }
-  };
-  await Promise.all(
-    Array.from({ length: Math.min(limit, items.length) }, worker),
-  );
-}
 
 const contains = (root: string, p: string) =>
   p === root || p.startsWith(root + sep);
