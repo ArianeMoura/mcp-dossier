@@ -39,9 +39,7 @@ describe("getIndex", () => {
     await commitFile(repo, "a.ts", "one\n", "feat: a");
     await expect(getIndex(repo, { timeoutMs: 1 })).rejects.toThrow();
 
-    await expect(getIndex(repo)).resolves.toMatchObject({
-      commits: expect.anything(),
-    });
+    expect((await getIndex(repo)).commits).toHaveLength(1);
   });
 
   it("rebuilds when HEAD moves", async () => {
