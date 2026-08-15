@@ -23,10 +23,10 @@ this project follows [SemVer](https://semver.org/).
 
 ### Added
 
-- `MCP_DOSSIER_REPO` names the repository to analyze. Clients spawn servers from
-  their own install directory, so the previous behaviour — read whatever the
-  process's working directory happened to be — pointed the server at no
-  repository at all in the most common setup, and every tool failed.
+- `MCP_DOSSIER_REPO` names the repository to analyze. The previous behavior was
+  to read whatever the process's working directory happened to be, and since
+  clients spawn servers from their own install directory, that pointed the
+  server at no repository at all in the most common setup.
 
 ### Changed
 
@@ -46,8 +46,8 @@ this project follows [SemVer](https://semver.org/).
   base was derived from `origin/HEAD` but stripped down to a local branch name
   that resolved nowhere, so it silently fell back to `HEAD`.
 - `hotspots` followed a symlinked directory out of the repository. The 0.0.1
-  fix guarded the last path component only, which left an intermediate one — a
-  directory swapped for a symlink after the commit — still walking outside.
+  fix guarded the last path component only, so an intermediate one still walked
+  outside: a directory swapped for a symlink after the commit.
 - The `dossier://file/{+path}` resource applied no length bound and echoed the
   path back, so it sidestepped the cap the equivalent tool argument enforces.
 - Counts of one no longer read "1 commits": one pluralization rule now serves

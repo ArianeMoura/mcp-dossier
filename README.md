@@ -13,40 +13,41 @@ is a noun: _tell me about this._ Agents have plenty of actions and almost no
 context. `mcp-dossier` fills that gap — from local git history alone, with no
 API keys and no network.
 
-One call — `file_dossier` on React's reconciler, verbatim:
+One call, `file_dossier` on Fastify's reply handler, with the addresses elided:
 
 ```
-packages/react-reconciler/src/ReactFiberCommitWork.js
+lib/reply.js
 
-  283 commits · 40 authors · first touched 3221d ago · last touched 1d ago
-  risk 12750.6 (churn 283 · 13% bugfix · 40 authors)
+  281 commits · 93 authors · first touched 3475d ago · last touched 2d ago
+  risk 32377.2 (churn 281 · 25% bugfix · 93 authors)
 
   Who knows it:
-    686  Sebastian Markbåge <sebastian@calyptus.eu>
-    154  ronnakamoto <14256602+ronnakamoto@users.noreply.github.com>
-    154  Josh Story <gnoff@storyposted.com>
+    80  Matteo Collina <…>
+    36  Manuel Spigolon <…>
+    27  KaKa <…>
 
   Changes together with:
-    29% (68x) packages/react-reconciler/src/ReactFiberBeginWork.js
-    28% (65x) packages/react-reconciler/src/ReactFiberCompleteWork.js
-    20% (46x) packages/react-reconciler/src/ReactFiberWorkLoop.js
-    18% (41x) packages/react-reconciler/src/ReactFiber.js
-    17% (40x) packages/react-reconciler/src/ReactFiberScheduler.js
+    26% (73x) test/internals/reply.test.js
+    18% (49x) fastify.js
+    16% (44x) lib/handleRequest.js
+    11% (31x) test/hooks.test.js
+    11% (30x) test/reply-error.test.js
 
   Recent commits:
-    [DOM] Scope Fragment once listeners to the fragment, not each child (#37169)
-    [Fiber] Run Fragment deletion effects for HostText children (#37168)
-    [Fiber] Extract Fragment instance commit helpers into their own module (#37167)
+    feat: add `Reply.prototype.mediaType` (#6932)
+    fix: remove raw response headers (#6860)
+    fix: clear trailer state when removing all trailers (#6845)
 ```
 
-The file itself shows none of this.
+The strongest coupling is the file's own test, which about one change in four
+also touches.
 
 ## Why not just `git log`?
 
-An agent can already run `git log`. But it doesn't know _what to compute_ —
-temporal coupling, hotspots, and ownership decay each need a pass over the whole
-history — and the raw log costs tens of thousands of tokens where a dossier
-returns ~200 tokens of signal.
+An agent can already run `git log`, but it doesn't know _what to compute_.
+Temporal coupling, hotspots and ownership decay each need a pass over the whole
+history. That raw log runs to millions of tokens on a large project, where a
+dossier answers in under two hundred.
 
 ## Install
 
@@ -74,7 +75,8 @@ so and exits rather than failing once per call.
 `MCP_DOSSIER_GIT_TIMEOUT_MS` caps any single git call, defaulting to `120000`.
 A git process that outlives it is killed, so a request can't hang the server.
 Values above `600000` are rejected at startup rather than clamped, so the cap
-can't be raised until it stops being a cap.
+can't be raised until it stops being a cap. See [bench/](bench/) for what the
+default covers.
 
 ## Troubleshooting
 
@@ -109,9 +111,8 @@ Plus resources (`dossier://repo`, `dossier://file/{+path}`,
 `dossier://hotspots`) and prompts (`onboard-me`, `review-my-branch`,
 `standup`).
 
-The signature tool is `review_gap`. It finds what historically changes with your
-branch's edits and subtracts what you already touched — the files you likely
-forgot:
+`review_gap` finds what historically changes with your branch's edits, subtracts
+what you already touched, and reports the rest:
 
 ```
 Usually change together with what you touched, and you didn't:
@@ -122,47 +123,55 @@ Usually change together with what you touched, and you didn't:
 
 ## How it works
 
-Layered — git adapter → in-memory index → analysis → MCP surface — and
-heuristic:
+Four layers: a git adapter, an in-memory index, the analyses, and the MCP
+surface. Each analysis is a heuristic.
 
-- **Coupling** — files that change together, directionally.
-- **Hotspot** — churn × complexity, using indentation as a language-agnostic
-  proxy for nesting.
-- **Ownership** — lines weighted by a six-month recency half-life.
-- **Risk** — churn, bugfix ratio, author count, and recency.
+- Coupling counts how often two files change in the same commit, as a fraction
+  of the target's own changes, so it reads in one direction.
+- Hotspot multiplies churn by complexity, using average indentation as a
+  language-agnostic proxy for nesting.
+- Ownership weights each author's lines by a six-month recency half-life.
+- Risk combines churn, bugfix ratio, author count and recency.
 
 These are proxies, not science: the bugfix regex is naive, indentation misreads
 flat or data-heavy files, and the thresholds are arbitrary. Churn alone can
-carry a file — React's top hotspot is its `package.json`, touched by every
-dependency bump.
+carry a file to the top, which is why React's highest-ranked hotspot is its
+`package.json`.
 
 History is read from the current branch's ancestry, so commits that live only on
 other branches don't count toward coupling or ownership.
 
 ## Scale
 
-Measured against React — 21,638 commits, 7,202 tracked files, 1.0 GB of `.git`:
+One `repo_briefing`, across five open-source projects. Full method and machine
+in [bench/](bench/), which is runnable.
 
-| tool            | cold  | warm | peak RSS |
-| --------------- | ----- | ---- | -------- |
-| `repo_briefing` | 24.3s | 1.1s | 207 MB   |
-| `hotspots`      | 17.2s | 1.0s | 222 MB   |
+| repo    | commits | file changes |  cold |  warm | peak RSS | tokens out | vs raw log |
+| ------- | ------: | -----------: | ----: | ----: | -------: | ---------: | ---------: |
+| got     |   1,664 |        5,163 |  0.5s | 0.03s |    70 MB |        102 |     1,107× |
+| fastify |   4,851 |       11,105 |  1.1s | 0.04s |   101 MB |         93 |     4,618× |
+| express |   6,158 |       12,271 |  0.9s | 0.03s |   101 MB |        101 |     3,637× |
+| vite    |   9,567 |       41,686 |  5.6s | 0.20s |   134 MB |        111 |     8,367× |
+| react   |  21,638 |      145,847 | 16.5s | 0.98s |   241 MB |        136 |    36,473× |
 
-Almost all of the cold cost is a single `log --numstat` pass. The index is
-cached per session and keyed on HEAD, so every later call is warm until you
-commit.
+Output size barely moves while the input grows 44×. Time is a different matter:
+cold cost is almost entirely one `log --numstat` pass, and it tracks file
+changes rather than commits. React averages 6.7 changed files per commit where
+express averages 2.0, which is why per-commit estimates vary so much more than
+per-change ones. The index is cached per session and keyed on HEAD, so every
+call after the first is warm until you commit.
 
 ## Privacy
 
-Output includes commit author names and emails, read from `git log` — the same
-data already public in the repository, used only to attribute ownership and
-activity.
+Output includes commit author names and emails, read from `git log`. That is the
+same data already public in the repository, used here only to attribute
+ownership and activity.
 
-Nothing leaves the machine: there are no network calls, and nothing is written
-to disk. State lives only in an in-memory index for the session. Diagnostics go
-to stderr, which your MCP client typically captures in its own log; a failing
-git command is logged there with its output, which can include absolute paths.
-The client only ever receives a sanitized message.
+There are no network calls, and nothing is written to disk: state lives in an
+in-memory index for the length of the session. Diagnostics go to stderr, which
+your MCP client typically captures in its own log, and a failing git command is
+logged there with its output, which can include absolute paths. The client
+receives a sanitized message.
 
 ## Development
 

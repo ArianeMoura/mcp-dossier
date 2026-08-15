@@ -43,12 +43,11 @@ five is 4.7× (0.17ms to 0.80ms), because React averages 6.7 changed files per
 commit where express averages 2.0. Per file change it narrows to 1.5×, which is
 the number to use for an estimate.
 
-`MCP_DOSSIER_GIT_TIMEOUT_MS` defaults to 120s. At the slowest rate observed that
-covers roughly a million file changes, far past any repository these projects
-represent.
+`MCP_DOSSIER_GIT_TIMEOUT_MS` defaults to 120s. At the slowest rate measured here
+that covers about 900,000 file changes, six times React's history.
 
 Cold is the first call in a session. Every call after it hits the index cache,
-keyed on HEAD, until you commit — that is the warm column, and it is what the
+keyed on HEAD, until you commit. That is the warm column, and it is what the
 rest of a session pays.
 
 Peak RSS is the process maximum, so it includes the whole working tree read the
