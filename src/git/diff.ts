@@ -21,8 +21,12 @@ async function originDefaultRef(
 }
 
 // The base commit: where the current branch diverged from the default branch.
-// Falling through to HEAD leaves the diff covering only uncommitted work.
-async function findBase(repoPath: string, opts: GitOptions): Promise<string> {
+// Falling through to HEAD leaves the diff covering only uncommitted work, and
+// to null when even HEAD is unborn, which is a repository with no commits.
+async function findBase(
+  repoPath: string,
+  opts: GitOptions,
+): Promise<string | null> {
   const candidates = [
     await originDefaultRef(repoPath, opts),
     "main",
@@ -47,7 +51,13 @@ async function findBase(repoPath: string, opts: GitOptions): Promise<string> {
       // branch doesn't exist here; try the next candidate
     }
   }
-  return "HEAD";
+
+  try {
+    await runGit(repoPath, ["rev-parse", "--verify", "HEAD"], opts);
+    return "HEAD";
+  } catch {
+    return null;
+  }
 }
 
 // Files touched by the current change: this branch's commits since the base,
@@ -59,7 +69,13 @@ export async function changedFiles(
   const base = await findBase(repoPath, opts);
 
   const [diff, untracked] = await Promise.all([
-    runGit(repoPath, ["diff", "--name-only", "--end-of-options", base], opts),
+    base === null
+      ? ""
+      : runGit(
+          repoPath,
+          ["diff", "--name-only", "--end-of-options", base],
+          opts,
+        ),
     runGit(repoPath, ["ls-files", "--others", "--exclude-standard"], opts),
   ]);
 
