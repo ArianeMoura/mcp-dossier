@@ -81,4 +81,12 @@ describe("changedFiles", () => {
     expect(changed).toContain("tracked.ts");
     expect(changed).toContain("new.ts");
   });
+
+  // A fresh `git init`: HEAD points at a branch that has no commit yet, so
+  // there is nothing to diff against and only the untracked half applies.
+  it("lists untracked files in a repository with no commits", async () => {
+    await writeFile(join(repo, "first.ts"), "new\n");
+
+    await expect(changedFiles(repo)).resolves.toEqual(["first.ts"]);
+  });
 });
