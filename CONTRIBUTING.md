@@ -30,8 +30,10 @@ for changes.
 
 ## Tests
 
-The analyses are pure and take `now: Date`, so you can call them with a
-hand-built index and no repository at all.
+Most of the analyses are pure functions over an index, so you can call them with
+a hand-built one and no repository at all. The ones that read a clock take
+`now: Date` rather than calling it. `hotspots` is the exception: it reads the
+working tree, and the pure half is `rankHotspots`.
 
 Anything that shells out to git needs a real one.
 `src/git/tmp-repo.testutil.ts` creates a throwaway repository with identity, GPG
