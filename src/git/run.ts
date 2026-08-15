@@ -26,7 +26,8 @@ export class GitTimeoutError extends Error {
 // core.fsmonitor in a repository's own .git/config names an executable git will
 // run, so analyzing an untrusted clone would execute it; `-c` outranks every
 // config file. quotePath=false keeps non-ASCII paths verbatim instead of
-// octal-escaped, so index keys match real files.
+// octal-escaped, and diff.relative=false keeps them anchored at the work tree
+// root, so index keys match real files either way.
 const HARDENING = [
   "--no-optional-locks",
   "--no-pager",
@@ -34,6 +35,8 @@ const HARDENING = [
   "core.fsmonitor=false",
   "-c",
   "core.quotePath=false",
+  "-c",
+  "diff.relative=false",
 ];
 
 // A stray GIT_DIR here would silently analyze the wrong repository, and
