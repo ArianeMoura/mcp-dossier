@@ -18,7 +18,9 @@ export async function resolveRepoRoot(
 ): Promise<string | null> {
   try {
     const root = await runGit(repoPath, ["rev-parse", "--show-toplevel"], opts);
-    return root.trim() || null;
+    // git answers with forward slashes even on Windows; resolve() puts it back
+    // in the platform's own form.
+    return root.trim() ? resolve(root.trim()) : null;
   } catch {
     return null;
   }
