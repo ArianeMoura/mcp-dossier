@@ -70,10 +70,8 @@ export function gitEnv(
   return env;
 }
 
-// Runs git in a repo and returns stdout. The only function that does I/O here.
-// spawn (not exec) and no shell — args are passed literally, so a path with a
-// space or `;` can't become another command. A hung, slow, or overly chatty git
-// is killed, so it can't block forever or exhaust memory.
+// spawn, not exec, and no shell: args are passed literally, so a path with a
+// space or `;` can't become another command.
 export function runGit(
   repoPath: string,
   args: string[],

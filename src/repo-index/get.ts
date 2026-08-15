@@ -5,7 +5,7 @@ import { buildIndex, type RepoIndex } from "./build.js";
 // value: the index and the HEAD SHA it was built at (the invalidation key).
 const cache = new Map<string, { head: string; index: RepoIndex }>();
 
-// The HEAD SHA, or "" if the repo has no commits yet. Used as the cache key.
+// The HEAD SHA, or "" if the repo has no commits yet.
 async function currentHead(
   repoPath: string,
   opts: GitOptions,

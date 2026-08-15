@@ -41,7 +41,6 @@ async function main(): Promise<void> {
   process.on("SIGINT", () => void shutdown("SIGINT"));
   process.on("SIGTERM", () => void shutdown("SIGTERM"));
 
-  // Last-resort guards: log and exit non-zero rather than dying silently.
   process.on("uncaughtException", (err) => {
     log(`uncaught exception: ${String(err)}`);
     process.exit(1);

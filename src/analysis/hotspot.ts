@@ -5,8 +5,7 @@ import { getIndex } from "../repo-index/get.js";
 import type { GitOptions } from "../git/run.js";
 import type { RepoIndex } from "../repo-index/build.js";
 
-// Indentation complexity: average leading whitespace of non-blank lines. A
-// language-agnostic proxy for nesting; blind to long, flat functions.
+// A language-agnostic proxy for nesting, blind to long flat functions.
 export function indentationComplexity(content: string): number {
   const lines = content.split("\n");
 
@@ -32,8 +31,8 @@ export type Hotspot = {
   score: number;
 };
 
-// Pure: ranks by churn × complexity. `readContent` returns a file's current
-// content, or null if it's gone (skipped). I/O stays in the caller → testable.
+// `readContent` returns a file's current content, or null to skip it. The I/O
+// stays in the caller.
 export function rankHotspots(
   index: RepoIndex,
   readContent: (path: string) => string | null,
@@ -65,8 +64,8 @@ export function isNoise(path: string): boolean {
   return NOISE.some((re) => re.test(path));
 }
 
-// The candidate set is every path in history: without ceilings, a monorepo opens
-// thousands of descriptors and holds the whole working tree in memory.
+// The candidate set is every path in history, so the reads need ceilings: this
+// many open at once, and this much from any single file.
 const READ_CONCURRENCY = 16;
 const MAX_FILE_BYTES = 512 * 1024;
 

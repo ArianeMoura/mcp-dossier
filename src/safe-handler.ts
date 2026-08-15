@@ -12,8 +12,7 @@ function logFailure(kind: string, name: string, err: unknown): void {
   console.error(`[mcp-dossier] ${kind} ${name} failed:`, err);
 }
 
-// A timeout is our own error, not git's output, so saying so leaks nothing and
-// names the one knob that fixes it.
+// A timeout is our own error, not git's output, so it is safe to surface.
 function clientMessage(fallback: string, err: unknown): string {
   return err instanceof GitTimeoutError
     ? `Reading this repository's history took longer than ${err.timeoutMs}ms. A large repository needs a higher MCP_DOSSIER_GIT_TIMEOUT_MS.`

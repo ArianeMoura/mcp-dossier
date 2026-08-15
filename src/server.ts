@@ -10,7 +10,7 @@ import { registerReviewGap } from "./tools/review-gap.js";
 import { registerDossierResources } from "./resources/dossier.js";
 import { registerDossierPrompts } from "./prompts/dossier.js";
 
-// Single source: this is the version the client sees on handshake.
+// Read rather than hardcoded, so the handshake can't drift from the package.
 const { version } = createRequire(import.meta.url)("../package.json") as {
   version: string;
 };

@@ -24,7 +24,6 @@ function commit(
   };
 }
 
-// 4 commits today: 2 bugfixes, 2 authors.
 const index = buildIndex([
   commit("ana@x", monthsAgo(0), "fix: crash"),
   commit("ana@x", monthsAgo(0), "feat: new screen"),

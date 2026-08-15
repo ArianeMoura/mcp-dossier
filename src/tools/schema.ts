@@ -13,7 +13,7 @@ export function limitSchema(item: string, fallback: number) {
 }
 
 // The useful range shrinks as a repository grows: a pair reaches 100% in a small
-// one and tops out near 30% in React. No single floor fits both, so there's none.
+// one and tops out near 30% in React, which is why there is no default.
 export const minStrengthSchema = z
   .number()
   .min(0)

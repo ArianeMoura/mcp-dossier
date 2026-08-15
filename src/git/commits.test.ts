@@ -14,7 +14,6 @@ const c2 =
   `1\t1\tsrc/parser.ts\n` +
   `-\t-\tassets/logo.png\n`; // binary: "-" for added and removed
 
-// c1, a blank line between commits, c2
 const raw = `${c1}\n${c2}`;
 
 describe("parseLog", () => {

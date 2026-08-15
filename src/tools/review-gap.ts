@@ -5,6 +5,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getIndex } from "../repo-index/get.js";
 import { changedFiles } from "../git/diff.js";
 import { reviewGap, type GapSuggestion } from "../analysis/review-gap.js";
+import { coupledLine } from "./format.js";
 import { safeTool } from "../safe-handler.js";
 import { limitSchema, minStrengthSchema } from "./schema.js";
 
@@ -19,10 +20,7 @@ export function formatReviewGap(gaps: GapSuggestion[]): string {
     return "No obvious gap: what you changed doesn't usually pull other files along.";
   }
 
-  const lines = gaps.map(
-    (g) =>
-      `  ${Math.round(g.strength * 100)}% (${g.coChanges}x) ${g.path} — with ${g.relatedTo}`,
-  );
+  const lines = gaps.map((g) => `  ${coupledLine(g)} — with ${g.relatedTo}`);
 
   return [
     "Usually change together with what you touched, and you didn't:",

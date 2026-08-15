@@ -2,14 +2,13 @@ import type { RepoIndex } from "../repo-index/build.js";
 
 export type CoupledFile = {
   path: string;
-  strength: number; // co-changes / target's changes (directional)
+  strength: number; // co-changes / the target's changes, tsunamis excluded
   coChanges: number; // how many times they changed together (the "support")
 };
 
 // A commit larger than this is a tsunami (prettier, mass rename, merge): it
 // creates false coupling between everything.
 const MAX_COMMIT_FILES = 30;
-// A pair seen fewer times than this is noise, not signal.
 const MIN_CO_CHANGES = 2;
 
 export function coupledFiles(

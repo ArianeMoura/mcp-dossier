@@ -40,7 +40,7 @@ export function buildRepoBriefing(index: RepoIndex): RepoBriefing {
 
   return {
     totalCommits: commits.length,
-    // Historical count: byFile keys every path ever touched, including deleted.
+    // byFile keys every path ever touched, so deleted files still count.
     fileCount: index.byFile.size,
     firstCommit: oldest?.date ?? null,
     lastCommit: newest?.date ?? null,
