@@ -65,28 +65,31 @@ Requires Node ≥ 20.12 and `git` on `PATH`. Point your MCP client at `npx`:
 ```
 
 `MCP_DOSSIER_REPO` names the repository to analyze. Omit it and the server reads
-its own working directory instead — right when you launch it from a project
-shell, wrong for most clients, which spawn servers from their install directory
-and not from your code. If the path isn't a git repository the server says so
-and exits, rather than failing once per call.
+its own working directory, which is what you want from a project shell and
+almost never what you want from an MCP client, since clients spawn servers from
+their own install directory. A subdirectory works too; the server resolves it to
+the repository root. If the path isn't a git repository at all, the server says
+so and exits rather than failing once per call.
 
-`MCP_DOSSIER_GIT_TIMEOUT_MS` caps any single git call (default `120000`, max
-`600000`). A git process that outlives it is killed, so a request can't hang the
-server. Reading history costs roughly 0.75ms per commit, so the default covers a
-repository of about 160k commits; past that, raise it.
+`MCP_DOSSIER_GIT_TIMEOUT_MS` caps any single git call, defaulting to `120000`.
+A git process that outlives it is killed, so a request can't hang the server.
+Values above `600000` are rejected at startup rather than clamped, so the cap
+can't be raised until it stops being a cap.
 
 ## Troubleshooting
 
-**Every tool answers "could not read this repository's history."** The server is
-running outside a git repository — most clients spawn it from their own install
-directory. Set `MCP_DOSSIER_REPO`.
-
-**"not a git repository" and the server exits.** The path in `MCP_DOSSIER_REPO`
-doesn't exist or has no `.git`. A relative path resolves against the server's
-working directory, which is rarely yours, so give an absolute one.
+**The server exits with "not a git repository".** Either it was launched outside
+one, which is what happens when a client spawns it from its own install
+directory, or the path in `MCP_DOSSIER_REPO` doesn't exist. Set the variable to
+an absolute path: a relative one resolves against the server's working
+directory, which is rarely yours.
 
 **"Reading this repository's history took longer than…"** The repository is
 bigger than the default budget. Raise `MCP_DOSSIER_GIT_TIMEOUT_MS`.
+
+**"Invalid environment configuration".** A variable failed validation and the
+server refused to start rather than run with a setting that doesn't hold. The
+message names the variable.
 
 ## Tools
 
@@ -98,8 +101,9 @@ bigger than the default budget. Raise `MCP_DOSSIER_GIT_TIMEOUT_MS`.
 | `hotspots`      | `limit`                | where churn and complexity concentrate         |
 | `repo_briefing` | —                      | a get-me-up-to-speed overview                  |
 
-`path` is relative to the repository root; `limit` is optional, 1–100, and
-defaults to 10.
+`path` is relative to the repository root. `limit` is optional, 1–100, and
+defaults to 10. `minStrength` is optional, 0–1, and defaults to 0: it drops
+suggestions whose coupling is weaker than the ratio you give.
 
 Plus resources (`dossier://repo`, `dossier://file/{+path}`,
 `dossier://hotspots`) and prompts (`onboard-me`, `review-my-branch`,
