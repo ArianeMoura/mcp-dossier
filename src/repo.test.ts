@@ -44,8 +44,9 @@ describe("resolveRepoPath", () => {
 });
 
 describe("resolveRepoRoot", () => {
-  // macOS puts the temp dir behind /private; git reports the resolved path.
-  const real = (path: string) => realpathSync(path);
+  // macOS puts the temp dir behind /private, and Windows hands out 8.3 short
+  // names; git reports neither. `.native` resolves both.
+  const real = (path: string) => realpathSync.native(path);
 
   it("returns the root of a repository", async () => {
     await commitFile(repo, "a.ts", "a\n", "chore: a");
