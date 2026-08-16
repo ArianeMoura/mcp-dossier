@@ -39,8 +39,8 @@ lib/reply.js
     fix: clear trailer state when removing all trailers (#6845)
 ```
 
-The strongest coupling is the file's own test, which about one change in four
-also touches.
+Its strongest coupling is its own test file, pulled in by roughly one change in
+four.
 
 ## Why not just `git log`?
 
@@ -65,26 +65,36 @@ Requires Node ≥ 20.12 and `git` on `PATH`. Point your MCP client at `npx`:
 }
 ```
 
-`MCP_DOSSIER_REPO` names the repository to analyze. Omit it and the server reads
-its own working directory, which is what you want from a project shell and
-almost never what you want from an MCP client, since clients spawn servers from
-their own install directory. A subdirectory works too; the server resolves it to
-the repository root. If the path isn't a git repository at all, the server says
-so and exits rather than failing once per call.
+Point it at your project, not at the server. Clients spawn servers from their
+own install directory, so without `MCP_DOSSIER_REPO` the server reads whatever
+that happens to be.
 
-`MCP_DOSSIER_GIT_TIMEOUT_MS` caps any single git call, defaulting to `120000`.
-A git process that outlives it is killed, so a request can't hang the server.
-Values above `600000` are rejected at startup rather than clamped, so the cap
-can't be raised until it stops being a cap. See [bench/](bench/) for what the
-default covers.
+## Configuration
+
+| variable                     | default     | effect                         |
+| ---------------------------- | ----------- | ------------------------------ |
+| `MCP_DOSSIER_REPO`           | working dir | the repository to analyze      |
+| `MCP_DOSSIER_GIT_TIMEOUT_MS` | `120000`    | ceiling on any single git call |
+| `MCP_DOSSIER_MAX_COMMITS`    | unset       | read only the newest N commits |
+
+A subdirectory works for `MCP_DOSSIER_REPO`; the server resolves it to the
+repository root. If the path isn't a git repository, it says so and exits rather
+than failing once per call. Give an absolute path: a relative one resolves
+against the server's working directory, which is rarely yours.
+
+The timeout kills a git process that outlives it, so a request can't hang the
+server. Values above `600000` are rejected at startup. See [bench/](bench/) for
+what the default covers.
+
+`MCP_DOSSIER_MAX_COMMITS` is a trade, not a tuning knob. On React, 5,000 commits
+answer in 8s where the full 21,638 take 22s, but coupling and ownership then
+only see what that window contains. The commit count in `repo_briefing` tells
+you which you got.
 
 ## Troubleshooting
 
 **The server exits with "not a git repository".** Either it was launched outside
-one, which is what happens when a client spawns it from its own install
-directory, or the path in `MCP_DOSSIER_REPO` doesn't exist. Set the variable to
-an absolute path: a relative one resolves against the server's working
-directory, which is rarely yours.
+one, or the path in `MCP_DOSSIER_REPO` doesn't exist.
 
 **"Reading this repository's history took longer than…"** The repository is
 bigger than the default budget. Raise `MCP_DOSSIER_GIT_TIMEOUT_MS`.
@@ -143,8 +153,8 @@ other branches don't count toward coupling or ownership.
 
 ## Scale
 
-One `repo_briefing`, across five open-source projects. Full method and machine
-in [bench/](bench/), which is runnable.
+One `repo_briefing`, across five open-source projects. Method and machine in
+[bench/](bench/), which you can run yourself.
 
 | repo    | commits | file changes |  cold |  warm | peak RSS | tokens out | vs raw log |
 | ------- | ------: | -----------: | ----: | ----: | -------: | ---------: | ---------: |
