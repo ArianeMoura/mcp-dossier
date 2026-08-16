@@ -6,6 +6,18 @@ import { forEachPooled } from "../pool.js";
 import type { GitOptions } from "../git/run.js";
 import type { RepoIndex } from "../repo-index/build.js";
 
+// Counting a tab as one character would rank a tab-indented file four times
+// lower than an equally nested one written with four spaces, which measures
+// editor config rather than nesting.
+const TAB_COLUMNS = 4;
+
+function indentColumns(line: string): number {
+  const indent = line.slice(0, line.length - line.trimStart().length);
+  let columns = 0;
+  for (const char of indent) columns += char === "\t" ? TAB_COLUMNS : 1;
+  return columns;
+}
+
 // A language-agnostic proxy for nesting, blind to long flat functions.
 export function indentationComplexity(content: string): number {
   const lines = content.split("\n");
@@ -16,9 +28,7 @@ export function indentationComplexity(content: string): number {
     return 0;
   }
 
-  const indentations = nonEmptyLines.map(
-    (line) => line.length - line.trimStart().length,
-  );
+  const indentations = nonEmptyLines.map(indentColumns);
 
   const total = indentations.reduce((sum, indentation) => sum + indentation, 0);
 
