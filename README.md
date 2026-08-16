@@ -158,11 +158,11 @@ One `repo_briefing`, across five open-source projects. Method and machine in
 
 | repo    | commits | file changes |  cold |  warm | peak RSS | tokens out | vs raw log |
 | ------- | ------: | -----------: | ----: | ----: | -------: | ---------: | ---------: |
-| got     |   1,664 |        5,163 |  0.5s | 0.03s |    70 MB |        102 |     1,107× |
-| fastify |   4,851 |       11,105 |  1.1s | 0.04s |   101 MB |         93 |     4,618× |
-| express |   6,158 |       12,271 |  0.9s | 0.03s |   101 MB |        101 |     3,637× |
-| vite    |   9,567 |       41,686 |  5.6s | 0.20s |   134 MB |        111 |     8,367× |
-| react   |  21,638 |      145,847 | 16.5s | 0.98s |   241 MB |        136 |    36,473× |
+| got     |   1,664 |        5,163 |  0.4s | 0.03s |    68 MB |        103 |     1,096× |
+| fastify |   4,851 |       11,105 |  0.9s | 0.05s |    79 MB |         93 |     4,618× |
+| express |   6,158 |       12,271 |  0.9s | 0.04s |    82 MB |        101 |     3,637× |
+| vite    |   9,567 |       41,686 |  4.6s | 0.20s |   109 MB |        111 |     8,367× |
+| react   |  21,638 |      145,847 | 17.6s | 0.98s |   156 MB |        136 |    36,473× |
 
 Output size barely moves while the input grows 44×. Time is a different matter:
 cold cost is almost entirely one `log --numstat` pass, and it tracks file
