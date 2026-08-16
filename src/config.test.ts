@@ -13,6 +13,12 @@ describe("loadConfig", () => {
     ).toBe(5000);
   });
 
+  it("treats a blank value as unset", () => {
+    expect(loadConfig({ MCP_DOSSIER_GIT_TIMEOUT_MS: "" }).gitTimeoutMs).toBe(
+      120_000,
+    );
+  });
+
   it("accepts the maximum timeout", () => {
     expect(
       loadConfig({ MCP_DOSSIER_GIT_TIMEOUT_MS: "600000" }).gitTimeoutMs,

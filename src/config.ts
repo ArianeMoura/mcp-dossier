@@ -1,21 +1,27 @@
 import { z } from "zod";
 
-// Bad values fail at startup, not mid-request. Without the upper bound, an
-// absurd timeout silently disables the guard it configures.
+// Without an upper bound an absurd timeout silently disables the guard it
+// configures.
 const MAX_GIT_TIMEOUT_MS = 600_000;
 
-// Cost tracks file changes rather than commits, at 0.08 to 0.13ms each across
-// the projects in bench/. 120s covers about 900,000 of them, and the cap still
-// bounds a hung git.
+// Reading history costs 0.08 to 0.13ms per file change across the projects in
+// bench/, so 120s covers about 900,000 of them.
 const DEFAULT_GIT_TIMEOUT_MS = 120_000;
 
+// `FOO=` in a compose file arrives as an empty string, which coerces to 0 and
+// fails every bound.
+const unsetIfBlank = <T extends z.ZodTypeAny>(schema: T) =>
+  z.preprocess((v) => (v === "" ? undefined : v), schema);
+
 const EnvSchema = z.object({
-  MCP_DOSSIER_GIT_TIMEOUT_MS: z.coerce
-    .number()
-    .int()
-    .positive()
-    .max(MAX_GIT_TIMEOUT_MS)
-    .default(DEFAULT_GIT_TIMEOUT_MS),
+  MCP_DOSSIER_GIT_TIMEOUT_MS: unsetIfBlank(
+    z.coerce
+      .number()
+      .int()
+      .positive()
+      .max(MAX_GIT_TIMEOUT_MS)
+      .default(DEFAULT_GIT_TIMEOUT_MS),
+  ),
 });
 
 export type Config = {
