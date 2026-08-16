@@ -84,25 +84,30 @@ describe("rankHotspots", () => {
     commit("c3", ["a", "c"]),
   ]);
 
-  const content: Record<string, string | null> = {
-    a: ["f() {", "  if (x) {", "    y;", "  }", "}"].join("\n"), // complexity 1.6
-    b: "const flat = 1;", // complexity 0
+  const complexity: Record<string, number | null> = {
+    a: 1.6,
+    b: 0,
     c: null, // deleted
   };
-  const readContent = (path: string) => content[path] ?? null;
+  const complexityOf = (path: string) => complexity[path] ?? null;
 
   it("score = churn × complexity", () => {
-    const a = rankHotspots(index, readContent).find((h) => h.path === "a");
+    const a = rankHotspots(index, complexityOf).find((h) => h.path === "a");
     expect(a).toMatchObject({ churn: 3, complexity: 1.6, score: 3 * 1.6 });
   });
 
   it("ranks from highest score to lowest", () => {
-    const ranked = rankHotspots(index, readContent);
+    const ranked = rankHotspots(index, complexityOf);
     expect(ranked[0]!.path).toBe("a"); // 4.8 before b (0)
   });
 
-  it("skips files gone from disk (readContent null)", () => {
-    const paths = rankHotspots(index, readContent).map((h) => h.path);
+  it("keeps a file whose complexity is zero", () => {
+    const paths = rankHotspots(index, complexityOf).map((h) => h.path);
+    expect(paths).toContain("b");
+  });
+
+  it("skips files gone from disk (complexity null)", () => {
+    const paths = rankHotspots(index, complexityOf).map((h) => h.path);
     expect(paths).not.toContain("c");
   });
 });
