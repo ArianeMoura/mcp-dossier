@@ -4,6 +4,7 @@ import { join } from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { resetConfig } from "../config.js";
 import { gitEnv, runGit, readCommits } from "./run.js";
 import {
   commitFile,
@@ -20,6 +21,8 @@ beforeEach(async () => {
 
 afterEach(async () => {
   await removeRepo(repo);
+  delete process.env.MCP_DOSSIER_MAX_COMMITS;
+  resetConfig();
 });
 
 describe("readCommits", () => {
@@ -37,6 +40,19 @@ describe("readCommits", () => {
 
   it("returns an empty list for a repo with no commits", async () => {
     expect(await readCommits(repo)).toEqual([]);
+  });
+
+  it("reads only the newest commits when a window is configured", async () => {
+    for (const n of [1, 2, 3]) {
+      await commitFile(repo, `f${n}.ts`, "x\n", `feat: ${n}`);
+    }
+
+    process.env.MCP_DOSSIER_MAX_COMMITS = "2";
+    resetConfig();
+
+    const commits = await readCommits(repo);
+
+    expect(commits.map((c) => c.subject)).toEqual(["feat: 3", "feat: 2"]);
   });
 });
 

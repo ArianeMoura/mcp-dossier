@@ -9,9 +9,8 @@ export type GitOptions = {
   maxOutputChars?: number;
 };
 
-// Typed so the MCP layer can name the fix. The message carries the args and
-// stays on stderr; only `timeoutMs` is safe to echo, since a ref taken from
-// repository data can reach the argument list.
+// Only `timeoutMs` is safe to show a client: a ref taken from repository data
+// can reach the argument list, so the full message stays on stderr.
 export class GitTimeoutError extends Error {
   constructor(
     readonly timeoutMs: number,
@@ -24,9 +23,9 @@ export class GitTimeoutError extends Error {
 
 // core.fsmonitor in a repository's own .git/config names an executable git will
 // run, so analyzing an untrusted clone would execute it; `-c` outranks every
-// config file. quotePath=false keeps non-ASCII paths verbatim instead of
-// octal-escaped, and diff.relative=false keeps them anchored at the work tree
-// root, so index keys match real files either way.
+// config file. quotePath and diff.relative keep paths verbatim and anchored at
+// the work tree root, so index keys match real files. The other two stop git
+// writing locks into the repository or waiting on a terminal.
 const HARDENING = [
   "--no-optional-locks",
   "--no-pager",
@@ -38,9 +37,8 @@ const HARDENING = [
   "diff.relative=false",
 ];
 
-// A stray GIT_DIR here would silently analyze the wrong repository, and
-// GIT_EXTERNAL_DIFF names a command. Dropping GIT_CONFIG_COUNT also neutralizes
-// any GIT_CONFIG_KEY_n/VALUE_n pairs.
+// GIT_DIR would silently point git at another repository and GIT_EXTERNAL_DIFF
+// names a command; dropping GIT_CONFIG_COUNT also voids GIT_CONFIG_KEY_n pairs.
 const UNSET_ENV = [
   "GIT_DIR",
   "GIT_WORK_TREE",
@@ -161,12 +159,20 @@ export async function readCommits(
   repoPath: string,
   opts: GitOptions = {},
 ): Promise<Commit[]> {
+  const maxCommits = getConfig().maxCommits;
+
   try {
     // --no-renames: numstat would otherwise emit `old => new` as one path, a key
     // that matches no file. As delete+add the churn signal is the same.
     const raw = await runGit(
       repoPath,
-      ["log", "--numstat", "--no-renames", "--pretty=format:" + LOG_FORMAT],
+      [
+        "log",
+        "--numstat",
+        "--no-renames",
+        ...(maxCommits ? [`--max-count=${maxCommits}`] : []),
+        "--pretty=format:" + LOG_FORMAT,
+      ],
       opts,
     );
     return parseLog(raw);
