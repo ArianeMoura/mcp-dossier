@@ -32,20 +32,19 @@ export type Hotspot = {
   score: number;
 };
 
-// `readContent` returns a file's current content, or null to skip it. The I/O
-// stays in the caller.
+// Complexity rather than content, so the caller can reduce each file as it
+// reads it instead of holding every file's text at once. null skips the file.
 export function rankHotspots(
   index: RepoIndex,
-  readContent: (path: string) => string | null,
+  complexityOf: (path: string) => number | null,
 ): Hotspot[] {
   const spots: Hotspot[] = [];
 
   for (const [path, commits] of index.byFile) {
-    const content = readContent(path);
-    if (content === null) continue;
+    const complexity = complexityOf(path);
+    if (complexity === null) continue;
 
     const churn = commits.length;
-    const complexity = indentationComplexity(content);
     spots.push({ path, churn, complexity, score: churn * complexity });
   }
 
@@ -111,10 +110,16 @@ export async function hotspots(
   const root = await realpath(repoPath);
   const paths = [...index.byFile.keys()].filter((path) => !isNoise(path));
 
-  const contents = new Map<string, string | null>();
+  // Reduced inside the worker: a file's text is released as soon as it has
+  // given up its one number.
+  const complexity = new Map<string, number | null>();
   await forEachPooled(paths, READ_CONCURRENCY, async (path) => {
-    contents.set(path, await readCandidate(root, path, opts.signal));
+    const content = await readCandidate(root, path, opts.signal);
+    complexity.set(
+      path,
+      content === null ? null : indentationComplexity(content),
+    );
   });
 
-  return rankHotspots(index, (path) => contents.get(path) ?? null);
+  return rankHotspots(index, (path) => complexity.get(path) ?? null);
 }
