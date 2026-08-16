@@ -22,10 +22,16 @@ const EnvSchema = z.object({
       .max(MAX_GIT_TIMEOUT_MS)
       .default(DEFAULT_GIT_TIMEOUT_MS),
   ),
+  // No default: reading everything is the honest answer, and a window silently
+  // narrows what coupling and ownership can see.
+  MCP_DOSSIER_MAX_COMMITS: unsetIfBlank(
+    z.coerce.number().int().positive().optional(),
+  ),
 });
 
 export type Config = {
   gitTimeoutMs: number;
+  maxCommits?: number;
 };
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -36,7 +42,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
       .join("; ");
     throw new Error(`Invalid environment configuration — ${detail}`);
   }
-  return { gitTimeoutMs: parsed.data.MCP_DOSSIER_GIT_TIMEOUT_MS };
+  return {
+    gitTimeoutMs: parsed.data.MCP_DOSSIER_GIT_TIMEOUT_MS,
+    maxCommits: parsed.data.MCP_DOSSIER_MAX_COMMITS,
+  };
 }
 
 let cached: Config | null = null;

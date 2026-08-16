@@ -14,9 +14,13 @@ describe("loadConfig", () => {
   });
 
   it("treats a blank value as unset", () => {
-    expect(loadConfig({ MCP_DOSSIER_GIT_TIMEOUT_MS: "" }).gitTimeoutMs).toBe(
-      120_000,
-    );
+    const config = loadConfig({
+      MCP_DOSSIER_GIT_TIMEOUT_MS: "",
+      MCP_DOSSIER_MAX_COMMITS: "",
+    });
+
+    expect(config.gitTimeoutMs).toBe(120_000);
+    expect(config.maxCommits).toBeUndefined();
   });
 
   it("accepts the maximum timeout", () => {
@@ -31,6 +35,21 @@ describe("loadConfig", () => {
       expect(() => loadConfig({ MCP_DOSSIER_GIT_TIMEOUT_MS: value })).toThrow(
         /Invalid environment configuration/,
       );
+    },
+  );
+
+  it("leaves the commit window unset unless asked for", () => {
+    expect(loadConfig({}).maxCommits).toBeUndefined();
+  });
+
+  it("accepts a commit window", () => {
+    expect(loadConfig({ MCP_DOSSIER_MAX_COMMITS: "500" }).maxCommits).toBe(500);
+  });
+
+  it.each(["0", "-1", "1.5", "many"])(
+    "rejects a commit window of %s",
+    (value) => {
+      expect(() => loadConfig({ MCP_DOSSIER_MAX_COMMITS: value })).toThrow();
     },
   );
 });
