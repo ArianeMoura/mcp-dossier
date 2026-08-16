@@ -42,6 +42,20 @@ describe("indentationComplexity", () => {
     expect(indentationComplexity(nested)).toBe(1.6);
   });
 
+  it("counts a tab as four columns, like four spaces", () => {
+    const tabbed = ["f() {", "\tif (x) {", "\t\ty;", "\t}", "}"].join("\n");
+    const spaced = ["f() {", "    if (x) {", "        y;", "    }", "}"].join(
+      "\n",
+    );
+
+    expect(indentationComplexity(tabbed)).toBe(indentationComplexity(spaced));
+  });
+
+  it("handles a line that mixes tabs and spaces", () => {
+    // one tab (4) + two spaces = 6 columns, over a single non-blank line
+    expect(indentationComplexity("\t  x")).toBe(6);
+  });
+
   it("ignores blank lines (including whitespace-only ones)", () => {
     const withBlanks = ["a", "", "  b", "   ", "c"].join("\n");
     // non-blank: "a"(0), "  b"(2), "c"(0) → average 2/3
