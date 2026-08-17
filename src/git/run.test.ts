@@ -76,16 +76,19 @@ describe("runGit", () => {
     ).resolves.toContain("ce013625030ba8dba906f756967f9e9ca394464a");
   });
 
+  // Enough for git to spend tens of milliseconds hashing, so the 1ms deadline
+  // below expires by a wide margin rather than racing the process.
+  const slow = { input: "x".repeat(4 * 1024 * 1024), timeoutMs: 1 };
+
   it("times out and kills a git process that outlives its budget", async () => {
-    // Spawning git alone costs milliseconds, so 1ms can't be met.
     await expect(
-      runGit(repo, ["rev-parse", "--show-toplevel"], { timeoutMs: 1 }),
+      runGit(repo, ["hash-object", "--stdin"], slow),
     ).rejects.toThrow(/timed out/);
   });
 
   it("reports a timeout as GitTimeoutError, carrying the budget it blew", async () => {
     await expect(
-      runGit(repo, ["rev-parse", "--show-toplevel"], { timeoutMs: 1 }),
+      runGit(repo, ["hash-object", "--stdin"], slow),
     ).rejects.toMatchObject({ name: "GitTimeoutError", timeoutMs: 1 });
   });
 

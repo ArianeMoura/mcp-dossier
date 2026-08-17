@@ -37,7 +37,9 @@ describe("getIndex", () => {
 
   it("does not serve a failed scan to the next caller", async () => {
     await commitFile(repo, "a.ts", "one\n", "feat: a");
-    await expect(getIndex(repo, { timeoutMs: 1 })).rejects.toThrow();
+    // The output cap, not a short timeout: any log at all overruns one
+    // character, where a deadline races a scan that keeps getting faster.
+    await expect(getIndex(repo, { maxOutputChars: 1 })).rejects.toThrow();
 
     expect((await getIndex(repo)).commits).toHaveLength(1);
   });

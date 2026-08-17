@@ -77,16 +77,22 @@ describe("readLineCounts", () => {
     expect((await countsFor("logo.png")).get(head())).toBe(0);
   });
 
-  it("reads a path holding pathspec magic literally", async () => {
-    // `:` opens pathspec magic, so without --literal-pathspecs git would reject
-    // this as an unknown magic word instead of finding the file. `add -A`
-    // rather than commitFile, which would hit the same problem staging it.
-    await writeFile(join(repo, ":weird.ts"), "one\n");
-    git(repo, "add", "-A");
-    git(repo, "commit", "-q", "-m", "feat: weird");
+  // NTFS reserves `:` for alternate data streams, so the file can't exist there
+  // and neither can the case this guards.
+  it.skipIf(process.platform === "win32")(
+    "reads a path holding pathspec magic literally",
+    async () => {
+      // `:` opens pathspec magic, so without --literal-pathspecs git would
+      // reject this as an unknown magic word instead of finding the file.
+      // `add -A` rather than commitFile, which would hit the same problem
+      // staging it.
+      await writeFile(join(repo, ":weird.ts"), "one\n");
+      git(repo, "add", "-A");
+      git(repo, "commit", "-q", "-m", "feat: weird");
 
-    expect((await countsFor(":weird.ts")).get(head())).toBe(1);
-  });
+      expect((await countsFor(":weird.ts")).get(head())).toBe(1);
+    },
+  );
 
   it("asks git nothing about a path with no history", async () => {
     await commitFile(repo, "a.ts", "one\n", "feat: a");
