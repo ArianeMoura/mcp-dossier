@@ -2,7 +2,9 @@ import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist/", "node_modules/"] },
+  // bench/repos/ holds the projects `bench/index.mjs --clone` fetches; linting
+  // them is neither our business nor possible without their own dependencies.
+  { ignores: ["dist/", "node_modules/", "bench/repos/"] },
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   {
@@ -32,7 +34,7 @@ export default tseslint.config(
     },
   },
   {
-    // This config file and the benchmark: no TS project covers them, so the
+    // The config files and the benchmark: no TS project covers them, so the
     // node globals @types/node supplies everywhere else have to be declared.
     files: ["**/*.js", "**/*.mjs"],
     extends: [tseslint.configs.disableTypeChecked],
