@@ -4,6 +4,7 @@ import {
 } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { getIndex } from "../repo-index/get.js";
+import { readLineCounts } from "../repo-index/line-counts.js";
 import { safeResource } from "../safe-handler.js";
 
 import { buildFileDossier } from "../analysis/dossier.js";
@@ -47,7 +48,8 @@ export function registerDossierResources(server: McpServer, repoPath: string) {
 
       const path = parsed.data;
       const index = await getIndex(repoPath, { signal });
-      const dossier = buildFileDossier(index, path, new Date());
+      const lines = await readLineCounts(repoPath, path, index, { signal });
+      const dossier = buildFileDossier(index, path, new Date(), lines);
       const text = dossier
         ? formatFileDossier(dossier)
         : `No commit has touched ${path}.`;

@@ -44,6 +44,8 @@ async function once(repo) {
   const { buildRepoBriefing } = await dist("analysis/briefing.js");
   const { hotspots } = await dist("analysis/hotspot.js");
   const { formatRepoBriefing } = await dist("tools/repo-briefing.js");
+  const { readLineCounts } = await dist("repo-index/line-counts.js");
+  const { buildFileDossier } = await dist("analysis/dossier.js");
 
   const briefing = async () => {
     const index = await getIndex(repo, { timeoutMs: 600_000 });
@@ -61,20 +63,47 @@ async function once(repo) {
   await briefing();
   const warm = performance.now() - warm0;
 
-  const raw = execFileSync("git", ["-C", repo, "log", "--numstat"], {
-    maxBuffer: 2 ** 30,
-    encoding: "utf8",
+  // The one call that still needs line counts, on the file with the most
+  // history: its cost scales with that history, so this is the worst case in
+  // the repository. Timed warm, because that is when a session asks it.
+  const [path] = [...index.byFile].sort((a, b) => b[1].length - a[1].length)[0];
+  const dossier0 = performance.now();
+  const counts = await readLineCounts(repo, path, index, {
+    timeoutMs: 600_000,
   });
+  buildFileDossier(index, path, new Date(), counts);
+  const dossier = performance.now() - dossier0;
+
+  // Sampled before the raw log is read. maxRSS is a high-water mark, and that
+  // read is the benchmark's own doing — a dozen megabytes the server never
+  // touches — so counting it would report the harness, not the server.
+  const rssMb = process.resourceUsage().maxRSS / 1024;
+
+  // Scoped so the string is unreachable before the heap is measured: it is a
+  // dozen megabytes of git output the server never holds.
+  const rawTok = (() => {
+    const raw = execFileSync("git", ["-C", repo, "log", "--numstat"], {
+      maxBuffer: 2 ** 30,
+      encoding: "utf8",
+    });
+    return Math.round(raw.length / 4);
+  })();
+
+  // Twice, because the first pass can leave objects the second one reaches.
+  globalThis.gc?.();
+  globalThis.gc?.();
 
   return {
     commits: index.commits.length,
     changes: index.commits.reduce((n, c) => n + c.files.length, 0),
     cold,
     warm,
-    rssMb: process.resourceUsage().maxRSS / 1024,
+    dossier,
+    heldMb: process.memoryUsage().heapUsed / 1048576,
+    rssMb,
     // ~4 chars per token is close enough to size the difference.
     outTok: Math.round(text.length / 4),
-    rawTok: Math.round(raw.length / 4),
+    rawTok,
   };
 }
 
@@ -83,7 +112,11 @@ const median = (xs) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)];
 function measure(repo) {
   const runs = [];
   for (let i = 0; i <= RUNS; i++) {
-    const out = run("node", [self, "--once", repo], { encoding: "utf8" });
+    // --expose-gc so the child can settle the heap before measuring what the
+    // index actually holds.
+    const out = run("node", ["--expose-gc", self, "--once", repo], {
+      encoding: "utf8",
+    });
     if (i > 0) runs.push(JSON.parse(out));
   }
   const of = (k) => median(runs.map((r) => r[k]));
@@ -92,6 +125,8 @@ function measure(repo) {
     ...runs[0],
     cold: of("cold"),
     warm: of("warm"),
+    dossier: of("dossier"),
+    heldMb: of("heldMb"),
     rssMb: of("rssMb"),
     usPerChange: (of("cold") * 1000) / runs[0].changes,
   };
@@ -119,14 +154,23 @@ for (const repo of repos) {
 
 const n = (x, d = 0) => x.toLocaleString("en-US", { maximumFractionDigits: d });
 
+const s = (ms, d) =>
+  (ms / 1000).toLocaleString("en-US", {
+    minimumFractionDigits: d,
+    maximumFractionDigits: d,
+  });
+
 console.log(
-  `| repo | commits | file changes | cold | warm | µs/change | peak RSS | tokens out | vs raw log |`,
+  `| repo | commits | file changes | cold | warm | dossier | µs/change | index heap | peak RSS | tokens out | vs raw log |`,
 );
-console.log("| --- | --: | --: | --: | --: | --: | --: | --: | --: |");
+console.log(
+  "| --- | --: | --: | --: | --: | --: | --: | --: | --: | --: | --: |",
+);
 for (const r of rows) {
   console.log(
-    `| ${r.repo} | ${n(r.commits)} | ${n(r.changes)} | ${n(r.cold / 1000, 1)}s | ` +
-      `${n(r.warm / 1000, 2)}s | ${n(r.usPerChange)} | ${n(r.rssMb)} MB | ` +
-      `${n(r.outTok)} | ${n(r.rawTok / r.outTok)}× |`,
+    `| ${r.repo} | ${n(r.commits)} | ${n(r.changes)} | ${s(r.cold, 1)}s | ` +
+      `${s(r.warm, 2)}s | ${n(r.dossier)}ms | ${n(r.usPerChange)} | ` +
+      `${n(r.heldMb)} MB | ${n(r.rssMb)} MB | ${n(r.outTok)} | ` +
+      `${n(r.rawTok / r.outTok)}× |`,
   );
 }

@@ -20,7 +20,7 @@ function commit(
     email,
     date,
     subject,
-    files: [{ path, added: 1, removed: 0 }],
+    files: [path],
   };
 }
 

@@ -226,6 +226,30 @@ describe("the MCP surface", () => {
     }
   });
 
+  it("answers on a repository with no commits instead of failing", async () => {
+    const empty = await makeTmpRepo();
+    const fresh = await connect(empty);
+
+    for (const [name, args] of [
+      ["repo_briefing", {}],
+      ["hotspots", {}],
+      ["review_gap", {}],
+      ["file_dossier", { path: "anything.ts" }],
+      ["coupled_files", { path: "anything.ts" }],
+    ] as const) {
+      const result = await fresh.callTool({ name, arguments: args });
+      expect(result.isError, `${name} errored`).toBeFalsy();
+    }
+
+    const file = await fresh.readResource({
+      uri: "dossier://file/anything.ts",
+    });
+    expect(resourceTextOf(file)).toContain("No commit has touched");
+
+    await fresh.close();
+    await removeRepo(empty);
+  });
+
   it("returns a sanitized error when the directory is not a repository", async () => {
     const notARepo = await makeTmpRepo();
     await removeRepo(join(notARepo, ".git"));

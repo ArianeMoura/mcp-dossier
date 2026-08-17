@@ -62,22 +62,36 @@ describe("runGit", () => {
     await expect(runGit(repo, ["rev-parse", "HEAD"])).rejects.toThrow();
   });
 
-  it("times out and kills a git process that blocks on stdin", async () => {
-    // hash-object --stdin waits for stdin, which we never write → it hangs.
+  it("closes stdin, so a subcommand that reads it can't hang", async () => {
+    // hash-object --stdin waits for end-of-input. Left open it hangs until the
+    // timeout; closed, it hashes the empty blob and exits.
+    await expect(runGit(repo, ["hash-object", "--stdin"])).resolves.toContain(
+      "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    );
+  });
+
+  it("feeds `input` to stdin", async () => {
     await expect(
-      runGit(repo, ["hash-object", "--stdin"], { timeoutMs: 150 }),
+      runGit(repo, ["hash-object", "--stdin"], { input: "hello\n" }),
+    ).resolves.toContain("ce013625030ba8dba906f756967f9e9ca394464a");
+  });
+
+  it("times out and kills a git process that outlives its budget", async () => {
+    // Spawning git alone costs milliseconds, so 1ms can't be met.
+    await expect(
+      runGit(repo, ["rev-parse", "--show-toplevel"], { timeoutMs: 1 }),
     ).rejects.toThrow(/timed out/);
   });
 
   it("reports a timeout as GitTimeoutError, carrying the budget it blew", async () => {
     await expect(
-      runGit(repo, ["hash-object", "--stdin"], { timeoutMs: 150 }),
-    ).rejects.toMatchObject({ name: "GitTimeoutError", timeoutMs: 150 });
+      runGit(repo, ["rev-parse", "--show-toplevel"], { timeoutMs: 1 }),
+    ).rejects.toMatchObject({ name: "GitTimeoutError", timeoutMs: 1 });
   });
 
   it("rejects with a cancellation message when aborted", async () => {
     const controller = new AbortController();
-    const promise = runGit(repo, ["hash-object", "--stdin"], {
+    const promise = runGit(repo, ["rev-parse", "--show-toplevel"], {
       signal: controller.signal,
     });
     controller.abort();
@@ -152,7 +166,7 @@ describe("readCommits encoding and paths", () => {
 
     const commits = await readCommits(repo);
 
-    expect(commits[0]?.files.map((f) => f.path)).toEqual(["café.ts"]);
+    expect(commits[0]?.files).toEqual(["café.ts"]);
   });
 
   it("records a rename as two paths, never an `old => new` key", async () => {
@@ -161,7 +175,7 @@ describe("readCommits encoding and paths", () => {
     git(repo, "commit", "-q", "-m", "refactor: rename");
 
     const commits = await readCommits(repo);
-    const paths = commits.flatMap((c) => c.files.map((f) => f.path));
+    const paths = commits.flatMap((c) => c.files);
 
     expect(paths).toContain("old.ts");
     expect(paths).toContain("new.ts");

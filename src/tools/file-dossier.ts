@@ -1,6 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { getIndex } from "../repo-index/get.js";
+import { readLineCounts } from "../repo-index/line-counts.js";
 import { buildFileDossier, type FileDossier } from "../analysis/dossier.js";
 import { coupledLine, plural } from "./format.js";
 import { safeTool } from "../safe-handler.js";
@@ -67,7 +68,8 @@ export function registerFileDossier(server: McpServer, repoPath: string) {
     },
     safeTool("file_dossier", async ({ path }, { signal }) => {
       const index = await getIndex(repoPath, { signal });
-      const dossier = buildFileDossier(index, path, new Date());
+      const lines = await readLineCounts(repoPath, path, index, { signal });
+      const dossier = buildFileDossier(index, path, new Date(), lines);
 
       if (dossier === null) {
         return {

@@ -32,14 +32,14 @@ export function coupledFiles(
   const counts = new Map<string, number>();
 
   for (const commit of targetCommits) {
-    for (const file of commit.files) {
-      if (file.path === target) {
+    for (const path of commit.files) {
+      if (path === target) {
         continue;
       }
 
-      const count = counts.get(file.path) ?? 0;
+      const count = counts.get(path) ?? 0;
 
-      counts.set(file.path, count + 1);
+      counts.set(path, count + 1);
     }
   }
 

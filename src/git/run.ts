@@ -7,6 +7,7 @@ export type GitOptions = {
   signal?: AbortSignal;
   timeoutMs?: number;
   maxOutputChars?: number;
+  input?: string; // fed to stdin, for the subcommands that read revisions there
 };
 
 // Only `timeoutMs` is safe to show a client: a ref taken from repository data
@@ -24,11 +25,14 @@ export class GitTimeoutError extends Error {
 // core.fsmonitor in a repository's own .git/config names an executable git will
 // run, so analyzing an untrusted clone would execute it; `-c` outranks every
 // config file. quotePath and diff.relative keep paths verbatim and anchored at
-// the work tree root, so index keys match real files. The other two stop git
-// writing locks into the repository or waiting on a terminal.
+// the work tree root, so index keys match real files. literal-pathspecs stops
+// a path that arrived as a tool argument being read as pathspec magic,
+// `:(exclude)` and friends. The other two stop git writing locks into the
+// repository or waiting on a terminal.
 const HARDENING = [
   "--no-optional-locks",
   "--no-pager",
+  "--literal-pathspecs",
   "-c",
   "core.fsmonitor=false",
   "-c",
@@ -104,6 +108,12 @@ export function runGit(
       opts.signal?.removeEventListener("abort", onAbort);
     };
 
+    // Always closed, even with nothing to send: a subcommand that reads stdin
+    // would otherwise wait for input that never comes. git can exit before
+    // draining it, so the EPIPE that follows is expected, not a failure.
+    child.stdin.on("error", () => {});
+    child.stdin.end(opts.input ?? "");
+
     // setEncoding, not `+= buffer`: it decodes across chunk boundaries, so a
     // multi-byte character split between reads isn't corrupted.
     child.stdout.setEncoding("utf8");
@@ -162,13 +172,16 @@ export async function readCommits(
   const maxCommits = getConfig().maxCommits;
 
   try {
-    // --no-renames: numstat would otherwise emit `old => new` as one path, a key
-    // that matches no file. As delete+add the churn signal is the same.
+    // --name-status, not --numstat: line counts mean diffing every blob, 12.6s
+    // of React's history against 0.8s for asking the trees which paths changed,
+    // and no analysis reads them from here.
+    // --no-renames: a rename would otherwise emit `R100 old new`, three fields
+    // where every other line has two. As delete+add the churn signal is the same.
     const raw = await runGit(
       repoPath,
       [
         "log",
-        "--numstat",
+        "--name-status",
         "--no-renames",
         ...(maxCommits ? [`--max-count=${maxCommits}`] : []),
         "--pretty=format:" + LOG_FORMAT,

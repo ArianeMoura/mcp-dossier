@@ -14,7 +14,7 @@ function commit(
     email: "author@example.com",
     date: new Date(date),
     subject: "commit " + hash,
-    files: paths.map((path) => ({ path, added: 1, removed: 0 })),
+    files: paths,
   };
 }
 

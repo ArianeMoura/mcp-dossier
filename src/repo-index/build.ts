@@ -3,6 +3,9 @@ import type { Commit } from "../git/commits.js";
 export type RepoIndex = {
   commits: Commit[]; // newest first, by author date
   byFile: Map<string, Commit[]>;
+  // Per-path line counts, filled on demand by readLineCounts. It lives here so
+  // it is discarded with the snapshot it was read at.
+  lineCounts: Map<string, Promise<Map<string, number>>>;
 };
 
 export function buildIndex(commits: Commit[]): RepoIndex {
@@ -15,12 +18,12 @@ export function buildIndex(commits: Commit[]): RepoIndex {
   const byFile = new Map<string, Commit[]>();
 
   for (const commit of sorted) {
-    for (const file of commit.files) {
-      const fileCommits = byFile.get(file.path) ?? [];
+    for (const path of commit.files) {
+      const fileCommits = byFile.get(path) ?? [];
       fileCommits.push(commit);
-      byFile.set(file.path, fileCommits);
+      byFile.set(path, fileCommits);
     }
   }
 
-  return { commits: sorted, byFile };
+  return { commits: sorted, byFile, lineCounts: new Map() };
 }

@@ -9,11 +9,16 @@ export type AuthorKnowledge = {
 
 // Knowledge per author of a file, highest first. Each commit is weighted by the
 // lines it touched, discounted by its age (half-life).
+//
+// `lines` maps a commit hash to what it changed in this file, and the caller
+// fetches it per path because the index doesn't carry counts. Without it every
+// commit weighs 1, ranking by how often someone touched the file rather than by
+// how much.
 export function fileOwnership(
   index: RepoIndex,
   path: string,
   now: Date,
-  opts: { halfLifeMonths?: number } = {},
+  opts: { halfLifeMonths?: number; lines?: Map<string, number> } = {},
 ): AuthorKnowledge[] {
   const commits = index.byFile.get(path) ?? [];
 
@@ -27,9 +32,7 @@ export function fileOwnership(
   >();
 
   for (const commit of commits) {
-    const change = commit.files.find((file) => file.path === path);
-
-    const lines = change ? change.added + change.removed : 0;
+    const lines = opts.lines ? (opts.lines.get(commit.hash) ?? 0) : 1;
 
     const weight = lines * decayWeight(commit.date, now, opts.halfLifeMonths);
 
