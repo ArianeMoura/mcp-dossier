@@ -3,15 +3,9 @@
 export const US = "\x1f";
 export const RS = "\x1e";
 
-// `git log` format, used with --numstat. RS goes at the START of each commit so
-// that splitting on it yields self-contained blocks.
+// `git log` format, used with --name-status. RS goes at the START of each
+// commit so that splitting on it yields self-contained blocks.
 export const LOG_FORMAT = "%x1e%H%x1f%an%x1f%ae%x1f%aI%x1f%s";
-
-export type FileChange = {
-  path: string;
-  added: number; // 0 for a binary file
-  removed: number; // 0 for a binary file
-};
 
 export type Commit = {
   hash: string;
@@ -19,7 +13,7 @@ export type Commit = {
   email: string; // stable identity of a person (the display name may vary)
   date: Date;
   subject: string;
-  files: FileChange[];
+  files: string[]; // paths touched, from the work tree root
 };
 
 // One block → a Commit, or null if the header is malformed — skipping a bad
@@ -43,15 +37,13 @@ function parseCommit(part: string): Commit | null {
   const parsedDate = new Date(date);
   if (Number.isNaN(parsedDate.getTime())) return null;
 
-  const files: FileChange[] = [];
+  const files: string[] = [];
   for (const line of lines.slice(1)) {
-    const [added, removed, path] = line.split("\t");
-    if (path === undefined) continue; // not a numstat line
-    files.push({
-      path,
-      added: Number(added) || 0, // numstat shows "-" for binary files → 0
-      removed: Number(removed) || 0,
-    });
+    // "M\tpath". A path holding a tab arrives C-quoted, so the first tab is
+    // always the one after the status letter.
+    const tab = line.indexOf("\t");
+    if (tab === -1) continue; // not a name-status line
+    files.push(line.slice(tab + 1));
   }
 
   return { hash, author, email, date: parsedDate, subject, files };

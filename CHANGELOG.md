@@ -9,8 +9,8 @@ this project follows [SemVer](https://semver.org/).
 
 - `MCP_DOSSIER_MAX_COMMITS` reads only the newest N commits instead of the whole
   history. It has no default, so nothing changes unless you ask for it. On React
-  that is 8s at 5,000 commits against 22s for all 21,638, and the commit count
-  in `repo_briefing` says which you got.
+  capping at 5,000 of the 21,639 commits roughly halves the history pass, and
+  the commit count in `repo_briefing` says which you got.
 - `review_gap` takes `minStrength`, dropping suggestions weaker than the
   coupling ratio you give. The analysis accepted it from the start and the tool
   never passed it, so it sat at 0.
@@ -48,6 +48,33 @@ this project follows [SemVer](https://semver.org/).
 
 ### Changed
 
+- The index reads `git log --name-status` instead of `--numstat`. Line counts
+  cost a blob diff per commit, which was 12.6s of React's history against 0.8s
+  for asking the trees which paths changed, and only `ownership` ever read them.
+  A cold `repo_briefing` on React drops from 17.6s to 1.6s and vite from 4.6s to
+  0.5s, and the index holds 54.9 MB of React where it held 62.4 MB. Owners come
+  out unchanged, because the weighting didn't.
+- `file_dossier` fetches the line counts for the file it was asked about, naming
+  the commits the index says touched it rather than walking history behind a
+  pathspec. Walking is nearly all of the cost: on React a pathspec pays 253ms to
+  reach one file's 769 commits where naming them costs 45ms, and the price then
+  follows the file's history instead of the repository's. Naming them also
+  sidesteps the history simplification a pathspec turns on, which hid 10 of the
+  281 commits the index has for Fastify's `lib/reply.js` — each of which would
+  have weighed nothing.
+- `runGit` closes stdin on every call and can write to it. A subcommand that
+  reads stdin used to hang until the timeout; `git log --stdin` now takes its
+  revisions there, where an argument list would have run to tens of kilobytes.
+- `--literal-pathspecs` joins the git hardening, now that a tool argument
+  reaches a pathspec: without it a path opening with `:` reads as pathspec magic
+  rather than as a file.
+- `bench/` reports what `file_dossier` costs over a warm index and what the
+  index holds after a forced GC, which unlike peak RSS doesn't swing by tens of
+  megabytes with V8's collection timing. Peak RSS is now sampled before the
+  raw-log comparison the benchmark does for the token column, so it stops
+  charging the server for the harness. The projects `--clone` fetches into
+  `bench/repos/` are also no longer picked up by this repository's lint and test
+  runs.
 - `hotspots` computes each file's complexity as it reads it, rather than holding
   every file's text until the whole tree has been read. Peak on React drops from
   212 MB to 156 MB.

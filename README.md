@@ -86,10 +86,10 @@ The timeout kills a git process that outlives it, so a request can't hang the
 server. Values above `600000` are rejected at startup. See [bench/](bench/) for
 what the default covers.
 
-`MCP_DOSSIER_MAX_COMMITS` is a trade, not a tuning knob. On React, 5,000 commits
-answer in 8s where the full 21,638 take 22s, but coupling and ownership then
-only see what that window contains. The commit count in `repo_briefing` tells
-you which you got.
+`MCP_DOSSIER_MAX_COMMITS` is a trade, not a tuning knob. On React, capping at
+5,000 of the 21,638 commits roughly halves the history pass, but coupling and
+ownership then only see what that window contains. The commit count in
+`repo_briefing` tells you which you got.
 
 ## Troubleshooting
 
@@ -156,20 +156,26 @@ other branches don't count toward coupling or ownership.
 One `repo_briefing`, across five open-source projects. Method and machine in
 [bench/](bench/), which you can run yourself.
 
-| repo    | commits | file changes |  cold |  warm | peak RSS | tokens out | vs raw log |
-| ------- | ------: | -----------: | ----: | ----: | -------: | ---------: | ---------: |
-| got     |   1,664 |        5,163 |  0.4s | 0.03s |    68 MB |        103 |     1,096× |
-| fastify |   4,851 |       11,105 |  0.9s | 0.05s |    79 MB |         93 |     4,618× |
-| express |   6,158 |       12,271 |  0.9s | 0.04s |    82 MB |        101 |     3,637× |
-| vite    |   9,567 |       41,686 |  4.6s | 0.20s |   109 MB |        111 |     8,367× |
-| react   |  21,638 |      145,847 | 17.6s | 0.98s |   156 MB |        136 |    36,473× |
+| repo    | commits | file changes | cold |  warm | dossier | index heap | peak RSS | tokens out | vs raw log |
+| ------- | ------: | -----------: | ---: | ----: | ------: | ---------: | -------: | ---------: | ---------: |
+| got     |   1,664 |        5,163 | 0.1s | 0.03s |    24ms |       8 MB |    69 MB |        103 |     1,096× |
+| fastify |   4,852 |       11,107 | 0.2s | 0.04s |    53ms |      11 MB |    74 MB |         93 |     4,618× |
+| express |   6,158 |       12,271 | 0.1s | 0.03s |    43ms |      12 MB |    74 MB |        101 |     3,637× |
+| vite    |   9,571 |       41,698 | 0.5s | 0.18s |    82ms |      20 MB |   112 MB |        111 |     8,370× |
+| react   |  21,639 |      145,853 | 1.6s | 0.51s |    49ms |      53 MB |   153 MB |        136 |    36,475× |
 
-Output size barely moves while the input grows 44×. Time is a different matter:
-cold cost is almost entirely one `log --numstat` pass, and it tracks file
-changes rather than commits. React averages 6.7 changed files per commit where
+Output size barely moves while the input grows 44×. Cold cost tracks file
+changes rather than commits: React averages 6.7 changed files per commit where
 express averages 2.0, which is why per-commit estimates vary so much more than
 per-change ones. The index is cached per session and keyed on HEAD, so every
 call after the first is warm until you commit.
+
+The dossier column is what `file_dossier` adds on top of a warm index. It is the
+only call left that reads line counts, which ownership weights an author by, and
+it reads them only for the commits that touched the file it was asked about — so
+it grows with that file's history, not the repository's. Index heap is what
+holding the history costs; peak RSS is higher because the hotspot ranking reads
+the working tree.
 
 ## Privacy
 

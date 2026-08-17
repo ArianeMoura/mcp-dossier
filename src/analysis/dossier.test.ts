@@ -15,7 +15,7 @@ function commit(date: Date, subject: string, path = "F"): Commit {
     email: "ana@x",
     date,
     subject,
-    files: [{ path, added: 1, removed: 0 }],
+    files: [path],
   };
 }
 

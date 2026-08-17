@@ -21,10 +21,12 @@ const MAX_OWNERS = 3;
 const MAX_COUPLED = 5;
 const MAX_SUBJECTS = 3;
 
+// `lines` reaches fileOwnership, the only part of this that wants it.
 export function buildFileDossier(
   index: RepoIndex,
   path: string,
   now: Date,
+  lines?: Map<string, number>,
 ): FileDossier | null {
   const commits = index.byFile.get(path) ?? [];
 
@@ -51,7 +53,7 @@ export function buildFileDossier(
     daysSinceFirstChange: days(firstChange),
     daysSinceLastChange: days(lastChange),
     risk,
-    owners: fileOwnership(index, path, now).slice(0, MAX_OWNERS),
+    owners: fileOwnership(index, path, now, { lines }).slice(0, MAX_OWNERS),
     coupled: coupledFiles(index, path).slice(0, MAX_COUPLED),
     recentSubjects: commits.slice(0, MAX_SUBJECTS).map((c) => c.subject),
   };

@@ -11,7 +11,7 @@ function commit(hash: string, paths: string[]): Commit {
     email: "a@x.com",
     date: new Date("2026-01-01T00:00:00.000Z"),
     subject: hash,
-    files: paths.map((path) => ({ path, added: 1, removed: 0 })),
+    files: paths,
   };
 }
 
