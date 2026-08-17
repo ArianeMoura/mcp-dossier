@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -209,5 +210,42 @@ describe("hotspots (reads the working tree)", () => {
     const paths = (await hotspots(repo)).map((h) => h.path);
 
     expect(paths).not.toContain("huge.ts");
+  });
+
+  it("skips a path history remembers and HEAD has deleted", async () => {
+    await commitFile(repo, "a.ts", indented, "feat: a");
+    await commitFile(repo, "gone.ts", indented, "feat: gone");
+    git(repo, "rm", "-q", "gone.ts");
+    git(repo, "commit", "-q", "-m", "chore: drop gone");
+
+    const paths = (await hotspots(repo)).map((h) => h.path);
+
+    expect(paths).toContain("a.ts");
+    expect(paths).not.toContain("gone.ts");
+  });
+
+  it("skips a file still on disk that git no longer tracks", async () => {
+    await commitFile(repo, "a.ts", indented, "feat: a");
+    await commitFile(repo, "loose.ts", indented, "feat: loose");
+    git(repo, "rm", "-q", "--cached", "loose.ts");
+    git(repo, "commit", "-q", "-m", "chore: untrack loose");
+
+    const paths = (await hotspots(repo)).map((h) => h.path);
+
+    expect(existsSync(join(repo, "loose.ts"))).toBe(true);
+    expect(paths).not.toContain("loose.ts");
+  });
+
+  it("ranks a case-only rename once, under the name HEAD tracks", async () => {
+    await commitFile(repo, "Reply.ts", indented, "feat: reply");
+    git(repo, "mv", "-f", "Reply.ts", "reply.ts");
+    git(repo, "commit", "-q", "-m", "refactor: lowercase");
+
+    const paths = (await hotspots(repo)).map((h) => h.path);
+
+    // Both spellings are in history. Where the filesystem ignores case, both
+    // resolve to the one file, and without the tracked filter it ranks twice.
+    expect(paths).toContain("reply.ts");
+    expect(paths).not.toContain("Reply.ts");
   });
 });
