@@ -4,7 +4,7 @@ import { z } from "zod";
 // configures.
 const MAX_GIT_TIMEOUT_MS = 600_000;
 
-// Reading history costs 11 to 14µs per file change across the projects in
+// Reading history costs 10 to 15µs per file change across the projects in
 // bench/, so 120s covers several million of them.
 const DEFAULT_GIT_TIMEOUT_MS = 120_000;
 
