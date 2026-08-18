@@ -1,6 +1,6 @@
 {
   "name": "mcp-dossier",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Archaeological intelligence about a git repository, over MCP. It doesn't act on your code — it answers questions about its history.",
   "type": "module",
   "author": "Ariane Moura",

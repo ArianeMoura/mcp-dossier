@@ -3,7 +3,7 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 this project follows [SemVer](https://semver.org/).
 
-## [Unreleased]
+## [0.2.0] - 2026-08-18
 
 ### Added
 
@@ -193,7 +193,7 @@ this project follows [SemVer](https://semver.org/).
 - `git` output is now capped, and `MCP_DOSSIER_GIT_TIMEOUT_MS` has an upper
   bound, so neither can silently disable the guard it configures.
 
-[unreleased]: https://github.com/ArianeMoura/mcp-dossier/compare/v0.1.1...HEAD
+[0.2.0]: https://github.com/ArianeMoura/mcp-dossier/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/ArianeMoura/mcp-dossier/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/ArianeMoura/mcp-dossier/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/ArianeMoura/mcp-dossier/releases/tag/v0.0.1
