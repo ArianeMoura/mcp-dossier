@@ -23,12 +23,12 @@ this project follows [SemVer](https://semver.org/).
   repository's file count, so express read as 902 files where it has 213, and
   React as 26,594 where it has 7,202. It now counts what git tracks at HEAD,
   which is the number a reader assumes it is being given.
-- `review_gap` could point at a file git no longer tracks. It probed the
-  filesystem once per suggestion to drop deleted ones, which accepts an
-  untracked leftover sitting in the working tree, and on a case-insensitive
-  filesystem accepts a stale spelling of a renamed file. It now asks git which
-  paths survive: one call however long the list, and no filesystem probes at
-  all.
+- `review_gap` could point at a file git no longer tracks, and probed the
+  filesystem once per suggestion to find out. Those probes accepted an untracked
+  leftover sitting in the working tree, and on a case-insensitive filesystem a
+  stale spelling of a renamed file; unbounded, they also turned a branch
+  touching thousands of files into `EMFILE`. It now asks git which paths
+  survive: one call however long the list, and no filesystem probes at all.
 - Pointing `MCP_DOSSIER_REPO` at a subdirectory returned nothing: `hotspots`
   answered "No hotspots found." and `review_gap` "No obvious gap", with no
   error. git reports paths from the work tree root, so joining them onto
@@ -46,8 +46,6 @@ this project follows [SemVer](https://semver.org/).
   env_file is common and nobody means zero by it.
 - Concurrent first calls each ran the full history scan and built their own
   index. On React that was two 17-second passes at once.
-- `review_gap` probed every suggestion for existence through an unbounded
-  `Promise.all`, which a branch touching thousands of files turns into `EMFILE`.
 - Indentation counted a tab as one column and four spaces as four, ranking a
   tab-indented file about four times lower than an equally nested one.
 - A commit dated in the future rendered as "first touched -354000d ago".
