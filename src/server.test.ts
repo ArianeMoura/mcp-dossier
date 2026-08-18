@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -144,6 +145,43 @@ describe("the MCP surface", () => {
       await client.callTool({ name: "review_gap", arguments: {} }),
     );
     expect(text).toContain("auth.test.ts");
+  });
+
+  it("does not suggest a coupled file that HEAD has deleted", async () => {
+    git(repo, "rm", "-q", "auth.test.ts");
+    git(repo, "commit", "-q", "-m", "chore: drop the test");
+    git(repo, "checkout", "-q", "-b", "feature");
+    await commitFile(repo, "auth.ts", "  changed\n", "fix: auth");
+
+    const text = textOf(
+      await client.callTool({ name: "review_gap", arguments: {} }),
+    );
+    expect(text).not.toContain("auth.test.ts");
+  });
+
+  it("does not suggest a file left on disk that git stopped tracking", async () => {
+    git(repo, "rm", "-q", "--cached", "auth.test.ts");
+    git(repo, "commit", "-q", "-m", "chore: untrack the test");
+    git(repo, "checkout", "-q", "-b", "feature");
+    await commitFile(repo, "auth.ts", "  changed\n", "fix: auth");
+
+    const text = textOf(
+      await client.callTool({ name: "review_gap", arguments: {} }),
+    );
+    expect(existsSync(join(repo, "auth.test.ts"))).toBe(true);
+    expect(text).not.toContain("auth.test.ts");
+  });
+
+  it("counts the repository's files, not every path in its history", async () => {
+    git(repo, "rm", "-q", "lonely.ts");
+    git(repo, "commit", "-q", "-m", "chore: drop lonely");
+
+    const text = textOf(
+      await client.callTool({ name: "repo_briefing", arguments: {} }),
+    );
+
+    // auth.ts and auth.test.ts remain; lonely.ts is history now.
+    expect(text).toContain("2 files");
   });
 
   it("drops suggestions below minStrength", async () => {

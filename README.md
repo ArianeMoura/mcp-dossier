@@ -159,10 +159,10 @@ One `repo_briefing`, across five open-source projects. Method and machine in
 | repo    | commits | file changes | cold |  warm | dossier | index heap | peak RSS | tokens out | vs raw log |
 | ------- | ------: | -----------: | ---: | ----: | ------: | ---------: | -------: | ---------: | ---------: |
 | got     |   1,664 |        5,163 | 0.1s | 0.03s |    24ms |       8 MB |    69 MB |        103 |     1,096× |
-| fastify |   4,852 |       11,107 | 0.2s | 0.05s |    53ms |      11 MB |    72 MB |         93 |     4,618× |
-| express |   6,158 |       12,271 | 0.1s | 0.03s |    42ms |      12 MB |    72 MB |        101 |     3,637× |
-| vite    |   9,571 |       41,698 | 0.5s | 0.16s |    83ms |      20 MB |   114 MB |        111 |     8,370× |
-| react   |  21,639 |      145,853 | 1.4s | 0.33s |    49ms |      53 MB |   154 MB |        136 |    36,475× |
+| fastify |   4,852 |       11,107 | 0.2s | 0.04s |    53ms |      11 MB |    72 MB |         93 |     4,618× |
+| express |   6,158 |       12,271 | 0.1s | 0.02s |    43ms |      12 MB |    72 MB |        101 |     3,637× |
+| vite    |   9,571 |       41,698 | 0.5s | 0.16s |    83ms |      20 MB |   112 MB |        111 |     8,370× |
+| react   |  21,639 |      145,853 | 1.8s | 0.32s |    49ms |      54 MB |   152 MB |        136 |    36,475× |
 
 Output size barely moves while the input grows 44×. Cold cost tracks file
 changes rather than commits: React averages 6.7 changed files per commit where

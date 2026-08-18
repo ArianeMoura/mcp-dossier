@@ -19,6 +19,16 @@ this project follows [SemVer](https://semver.org/).
 
 ### Fixed
 
+- `repo_briefing` counted every path the history had ever seen and called it the
+  repository's file count, so express read as 902 files where it has 213, and
+  React as 26,594 where it has 7,202. It now counts what git tracks at HEAD,
+  which is the number a reader assumes it is being given.
+- `review_gap` could point at a file git no longer tracks. It probed the
+  filesystem once per suggestion to drop deleted ones, which accepts an
+  untracked leftover sitting in the working tree, and on a case-insensitive
+  filesystem accepts a stale spelling of a renamed file. It now asks git which
+  paths survive: one call however long the list, and no filesystem probes at
+  all.
 - Pointing `MCP_DOSSIER_REPO` at a subdirectory returned nothing: `hotspots`
   answered "No hotspots found." and `review_gap` "No obvious gap", with no
   error. git reports paths from the work tree root, so joining them onto
@@ -48,19 +58,23 @@ this project follows [SemVer](https://semver.org/).
 
 ### Changed
 
+- The set of paths git tracks at HEAD is read once per index snapshot and shared
+  by everything that needs it, alongside the per-file line counts. Both are
+  answers about one revision, so both are discarded when HEAD moves and a new
+  index is built.
 - `hotspots` only considers files git tracks at HEAD. Its candidate set was
   every path history had ever seen, and on React 19,392 of those 26,594 paths
   are deleted files whose reads could only fail. Asking `git ls-files` costs
   10ms and takes the working tree read from 536ms to 318ms, which is most of
   what a session pays after its first call: warm on React drops from 0.51s to
-  0.33s. It also settles case. A rename that changed only capitalization leaves
+  0.32s. It also settles case. A rename that changed only capitalization leaves
   both spellings in history, and where the filesystem ignores case — macOS,
   Windows — both resolved to the same file and ranked it twice, splitting its
   churn. Express has one, `test/res.sendFile.js`.
 - The index reads `git log --name-status` instead of `--numstat`. Line counts
   cost a blob diff per commit, which was 12.6s of React's history against 0.8s
   for asking the trees which paths changed, and only `ownership` ever read them.
-  A cold `repo_briefing` on React drops from 17.6s to 1.4s and vite from 4.6s to
+  A cold `repo_briefing` on React drops from 17.6s to 1.8s and vite from 4.6s to
   0.5s, and the index holds 54.9 MB of React where it held 62.4 MB. Owners come
   out unchanged, because the weighting didn't.
 - `file_dossier` fetches the line counts for the file it was asked about, naming

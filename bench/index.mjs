@@ -45,12 +45,17 @@ async function once(repo) {
   const { hotspots } = await dist("analysis/hotspot.js");
   const { formatRepoBriefing } = await dist("tools/repo-briefing.js");
   const { readLineCounts } = await dist("repo-index/line-counts.js");
+  const { trackedPaths } = await dist("repo-index/tracked.js");
   const { buildFileDossier } = await dist("analysis/dossier.js");
 
   const briefing = async () => {
     const index = await getIndex(repo, { timeoutMs: 600_000 });
     const spots = (await hotspots(repo, { timeoutMs: 600_000 })).slice(0, 5);
-    return { text: formatRepoBriefing(buildRepoBriefing(index), spots), index };
+    const tracked = await trackedPaths(repo, index, { timeoutMs: 600_000 });
+    return {
+      text: formatRepoBriefing(buildRepoBriefing(index, tracked), spots),
+      index,
+    };
   };
 
   const cold0 = performance.now();

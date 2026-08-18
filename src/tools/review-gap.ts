@@ -1,22 +1,12 @@
-import { access } from "node:fs/promises";
-import { join } from "node:path";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { getIndex } from "../repo-index/get.js";
+import { trackedPaths } from "../repo-index/tracked.js";
 import { changedFiles } from "../git/diff.js";
 import { reviewGap, type GapSuggestion } from "../analysis/review-gap.js";
 import { coupledLine } from "./format.js";
-import { forEachPooled } from "../pool.js";
 import { safeTool } from "../safe-handler.js";
 import { limitSchema, minStrengthSchema } from "./schema.js";
-
-const PROBE_CONCURRENCY = 16;
-
-const exists = (path: string) =>
-  access(path).then(
-    () => true,
-    () => false,
-  );
 
 export function formatReviewGap(gaps: GapSuggestion[]): string {
   if (gaps.length === 0) {
@@ -58,19 +48,13 @@ export function registerReviewGap(server: McpServer, repoPath: string) {
       const index = await getIndex(repoPath, { signal });
       const gaps = reviewGap(index, changed, { minStrength });
 
-      // Drop coupled files that were since deleted. The set is as large as the
-      // branch's history allows, so the probes need a ceiling.
-      const present = new Array<boolean>(gaps.length).fill(false);
-      await forEachPooled(
-        gaps.map((g, i) => ({ g, i })),
-        PROBE_CONCURRENCY,
-        async ({ g, i }) => {
-          present[i] = await exists(join(repoPath, g.path));
-        },
-      );
-      const alive = gaps.filter((_, i) => present[i]);
+      // Suggesting a file that isn't there wastes the reader's time. git knows
+      // which paths survive at HEAD, which beats a filesystem probe per
+      // suggestion: it costs one call however long the list, and it doesn't
+      // mistake an untracked leftover for part of the project.
+      const tracked = await trackedPaths(repoPath, index, { signal });
 
-      const top = alive.slice(0, limit);
+      const top = gaps.filter((gap) => tracked.has(gap.path)).slice(0, limit);
       return { content: [{ type: "text", text: formatReviewGap(top) }] };
     }),
   );

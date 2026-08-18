@@ -5,6 +5,7 @@ import {
 
 import { getIndex } from "../repo-index/get.js";
 import { readLineCounts } from "../repo-index/line-counts.js";
+import { trackedPaths } from "../repo-index/tracked.js";
 import { safeResource } from "../safe-handler.js";
 
 import { buildFileDossier } from "../analysis/dossier.js";
@@ -67,7 +68,8 @@ export function registerDossierResources(server: McpServer, repoPath: string) {
     },
     safeResource("repo-briefing", async (uri, { signal }) => {
       const index = await getIndex(repoPath, { signal });
-      const briefing = buildRepoBriefing(index);
+      const tracked = await trackedPaths(repoPath, index, { signal });
+      const briefing = buildRepoBriefing(index, tracked);
       const spots = (await hotspots(repoPath, { signal })).slice(0, 5);
 
       const text =

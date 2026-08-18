@@ -16,7 +16,11 @@ export type RepoBriefing = {
 
 const MAX_AUTHORS = 5;
 
-export function buildRepoBriefing(index: RepoIndex): RepoBriefing {
+// `tracked` is what git has at HEAD. Counting `byFile` instead would report the
+export function buildRepoBriefing(
+  index: RepoIndex,
+  tracked: Set<string>,
+): RepoBriefing {
   const commits = index.commits;
 
   const byEmail = new Map<string, AuthorActivity>();
@@ -40,8 +44,7 @@ export function buildRepoBriefing(index: RepoIndex): RepoBriefing {
 
   return {
     totalCommits: commits.length,
-    // byFile keys every path ever touched, so deleted files still count.
-    fileCount: index.byFile.size,
+    fileCount: tracked.size,
     firstCommit: oldest?.date ?? null,
     lastCommit: newest?.date ?? null,
     topAuthors,
