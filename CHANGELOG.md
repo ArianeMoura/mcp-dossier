@@ -37,8 +37,9 @@ this project follows [SemVer](https://semver.org/).
   serving empty answers from one.
 - The index trusted `git log`'s ordering, which is by commit date, while every
   analysis reads the author date a `Commit` carries. A rebase or cherry-pick
-  makes the two disagree, in 5,960 of React's 21,638 commits. `repo_briefing`
-  had been dating React's first commit a day late as a result.
+  makes the two disagree, and the dates differ in 3,509 of React's 21,639
+  commits. `repo_briefing` had been dating React's first commit a day late as
+  a result.
 - `review_gap` failed outright on a repository with no commits, where the other
   tools answered normally.
 - A blank environment variable refused to start the server, because an empty
@@ -98,7 +99,7 @@ this project follows [SemVer](https://semver.org/).
   runs.
 - `hotspots` computes each file's complexity as it reads it, rather than holding
   every file's text until the whole tree has been read. Peak on React drops from
-  212 MB to 156 MB.
+  191 MB to 148 MB.
 - `diff.relative=false` joins the git hardening: it is repository-controlled
   config that changes how paths are printed.
 - CI type-checks the tests, runs type-aware lint rules, and covers macOS and
