@@ -1,11 +1,15 @@
 import type { Commit } from "../git/commits.js";
 
+// Answers derived from the same snapshot, filled on demand. They live on the index so they are discarded with it: a moved HEAD builds a new one.
+export type IndexMemo = {
+  lineCounts: Map<string, Promise<Map<string, number>>>;
+  tracked?: Promise<Set<string>>;
+};
+
 export type RepoIndex = {
   commits: Commit[]; // newest first, by author date
-  byFile: Map<string, Commit[]>;
-  // Per-path line counts, filled on demand by readLineCounts. It lives here so
-  // it is discarded with the snapshot it was read at.
-  lineCounts: Map<string, Promise<Map<string, number>>>;
+  byFile: Map<string, Commit[]>; // every path history ever saw, not the project
+  memo: IndexMemo;
 };
 
 export function buildIndex(commits: Commit[]): RepoIndex {
@@ -25,5 +29,5 @@ export function buildIndex(commits: Commit[]): RepoIndex {
     }
   }
 
-  return { commits: sorted, byFile, lineCounts: new Map() };
+  return { commits: sorted, byFile, memo: { lineCounts: new Map() } };
 }

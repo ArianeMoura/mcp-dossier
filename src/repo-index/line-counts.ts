@@ -5,8 +5,7 @@ import type { RepoIndex } from "./build.js";
 // Only the hash: the rest of the commit is already in the index.
 const HASH_FORMAT = "%x1e%H";
 
-// A ceiling on the memo, so an agent walking a large tree can't grow it without
-// bound. Dropping the lot beats evicting cleverly: a rebuild is one git call.
+// A ceiling on the memo, so an agent walking a large tree can't grow it without bound. Dropping the lot beats evicting cleverly: a rebuild is one git call.
 const MAX_MEMO_ENTRIES = 256;
 
 function parse(raw: string, path: string): Map<string, number> {
@@ -29,15 +28,9 @@ function parse(raw: string, path: string): Map<string, number> {
 }
 
 // Lines each commit changed in `path`, for the one analysis that weighs them.
-//
-// The commits come from the index rather than from a pathspec walk: walking is
-// nearly all of the cost, and on React reaching one file's 769 commits that way
-// costs 253ms against 45ms for naming them. Naming them also sidesteps the
-// history simplification a pathspec turns on, which hides commits the index
-// counts and would leave them weighing nothing.
-//
-// Memoized on the index, so the answers can't outlive the snapshot they were
-// read at: a moved HEAD builds a new index and leaves this one to be collected.
+// The commits come from the index rather than from a pathspec walk: walking is nearly all of the cost, and on React reaching one file's 769 commits that way costs 253ms against 45ms for naming them. Naming them also sidesteps the history simplification a pathspec turns on, which hides commits the index counts and would leave them weighing nothing.
+
+// Memoized on the index, so the answers can't outlive the snapshot they were read at: a moved HEAD builds a new index and leaves this one to be collected.
 export function readLineCounts(
   repoPath: string,
   path: string,
@@ -47,7 +40,7 @@ export function readLineCounts(
   const commits = index.byFile.get(path);
   if (commits === undefined) return Promise.resolve(new Map<string, number>());
 
-  const memo = index.lineCounts;
+  const memo = index.memo.lineCounts;
   const hit = memo.get(path);
   if (hit) return hit;
 

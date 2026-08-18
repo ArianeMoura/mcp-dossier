@@ -4,6 +4,7 @@ import type {
 } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { getIndex } from "../repo-index/get.js";
+import { trackedPaths } from "../repo-index/tracked.js";
 import { buildRepoBriefing, type RepoBriefing } from "../analysis/briefing.js";
 import { hotspots, type Hotspot } from "../analysis/hotspot.js";
 import { plural } from "./format.js";
@@ -57,7 +58,8 @@ export function registerRepoBriefing(server: McpServer, repoPath: string) {
     },
     safeTool("repo_briefing", async ({ signal }: ToolExtra) => {
       const index = await getIndex(repoPath, { signal });
-      const briefing = buildRepoBriefing(index);
+      const tracked = await trackedPaths(repoPath, index, { signal });
+      const briefing = buildRepoBriefing(index, tracked);
 
       if (briefing.totalCommits === 0) {
         return {

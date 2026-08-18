@@ -25,10 +25,10 @@ Apple M1, 8 cores, 8 GB, Node 20.19.1, git 2.45.0, macOS 26.3.
 | repo    | commits | file changes | cold |  warm | dossier | µs/change | index heap | peak RSS | tokens out | vs raw log |
 | ------- | ------: | -----------: | ---: | ----: | ------: | --------: | ---------: | -------: | ---------: | ---------: |
 | got     |   1,664 |        5,163 | 0.1s | 0.03s |    24ms |        15 |       8 MB |    69 MB |        103 |     1,096× |
-| fastify |   4,852 |       11,107 | 0.2s | 0.05s |    53ms |        14 |      11 MB |    72 MB |         93 |     4,618× |
-| express |   6,158 |       12,271 | 0.1s | 0.03s |    42ms |        11 |      12 MB |    72 MB |        101 |     3,637× |
-| vite    |   9,571 |       41,698 | 0.5s | 0.16s |    83ms |        11 |      20 MB |   114 MB |        111 |     8,370× |
-| react   |  21,639 |      145,853 | 1.4s | 0.33s |    49ms |        10 |      53 MB |   154 MB |        136 |    36,475× |
+| fastify |   4,852 |       11,107 | 0.2s | 0.04s |    53ms |        14 |      11 MB |    72 MB |         93 |     4,618× |
+| express |   6,158 |       12,271 | 0.1s | 0.02s |    43ms |        12 |      12 MB |    72 MB |        101 |     3,637× |
+| vite    |   9,571 |       41,698 | 0.5s | 0.16s |    83ms |        12 |      20 MB |   112 MB |        111 |     8,370× |
+| react   |  21,639 |      145,853 | 1.8s | 0.32s |    49ms |        12 |      54 MB |   152 MB |        136 |    36,475× |
 
 React is not in the default set because it clones at 1.1 GB, eight times the
 other four combined. To include it:
@@ -50,6 +50,11 @@ that covers about 8 million file changes, some fifty times React's history —
 and that is a floor, since the rate includes the working tree read the timeout
 doesn't bound. `MCP_DOSSIER_MAX_COMMITS` is the other lever: on React it roughly
 halves the history pass, which is about two thirds of cold and none of warm.
+
+Cold is the least repeatable column here. Five runs of React land anywhere
+between 1.5s and 1.9s, because the working tree read depends on what the OS has
+cached, so read it as a range rather than a figure. Warm and dossier hold to
+within a millisecond or two, and index heap does not move at all.
 
 Cold is the first call in a session. Every call after it hits the index cache,
 keyed on HEAD, until you commit. That is the warm column, and it is what the

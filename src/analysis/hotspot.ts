@@ -2,8 +2,9 @@ import { lstat, readFile, realpath } from "node:fs/promises";
 import { resolve, sep } from "node:path";
 
 import { getIndex } from "../repo-index/get.js";
+import { trackedPaths } from "../repo-index/tracked.js";
 import { forEachPooled } from "../pool.js";
-import { runGit, type GitOptions } from "../git/run.js";
+import type { GitOptions } from "../git/run.js";
 import type { RepoIndex } from "../repo-index/build.js";
 
 // Counting a tab as one character would rank a tab-indented file four times
@@ -79,19 +80,6 @@ export function isNoise(path: string): boolean {
 const READ_CONCURRENCY = 16;
 const MAX_FILE_BYTES = 512 * 1024;
 
-// Paths git tracks at HEAD. History keeps every path it ever saw, and on React
-// 19,392 of the 26,594 are deleted files whose probes can only fail; asking git
-// costs 10ms and skips them. It also settles case: a rename that only changed
-// capitalization leaves both spellings in history, and on a case-insensitive
-// filesystem both resolve to the one file, which would rank it twice.
-async function trackedPaths(
-  repoPath: string,
-  opts: GitOptions,
-): Promise<Set<string>> {
-  const out = await runGit(repoPath, ["ls-files"], opts);
-  return new Set(out.split("\n").filter(Boolean));
-}
-
 const contains = (root: string, p: string) =>
   p === root || p.startsWith(root + sep);
 
@@ -131,7 +119,7 @@ export async function hotspots(
   const index = await getIndex(repoPath, opts);
 
   const root = await realpath(repoPath);
-  const tracked = await trackedPaths(repoPath, opts);
+  const tracked = await trackedPaths(repoPath, index, opts);
   const paths = [...index.byFile.keys()].filter(
     (path) => tracked.has(path) && !isNoise(path),
   );
